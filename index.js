@@ -71,7 +71,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/db', (req, res) => {
-	res.send('Database result');
+
+	let queries = [
+		dbQuery('SELECT * FROM songs'),
+		dbQuery('SELECT * FROM artists'),
+		dbQuery('SELECT * FROM albums')
+	];
+
+	Promise.all(queries).then((results) => {
+
+		res.send({songs: results[0], artists: results[1], albums: results[2]});
+
+	});
+
 });
 
 app.get('/db/:songId', (req, res) => {
