@@ -66,10 +66,12 @@ function dbQuery (sql, params) {
 
 // ----- Routes ----- //
 
+// Returns the main app page.
 app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/app.html');
 });
 
+// Returns a copy of the full database as JSON.
 app.get('/db', (req, res) => {
 
 	let queries = [
@@ -86,6 +88,7 @@ app.get('/db', (req, res) => {
 
 });
 
+// Returns the info for a single song as JSON.
 app.get('/db/:songId', (req, res) => {
 
 	let id = req.params.songId;
