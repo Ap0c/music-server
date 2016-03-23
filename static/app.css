@@ -1,0 +1,22 @@
+/* ----- General ----- */
+
+html, body {
+	padding: 0;
+	margin: 0;
+	font-family: sans-serif;
+}
+
+
+/* ----- Main View ----- */
+
+#location-bar, #player-bar {
+	height: 8vh;
+	width: 100vw;
+	background-color: coral;
+}
+
+#navigation {
+	height: 84vh;
+	width: 100vw;
+	background-color: lightblue;
+}
