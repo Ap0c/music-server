@@ -75,7 +75,19 @@ app.get('/db', (req, res) => {
 });
 
 app.get('/db/:songId', (req, res) => {
-	res.send(`Requested song ${req.params.songId}.`);
+
+	let id = req.params.songId;
+
+	dbQuery('SELECT * FROM songs WHERE id = ?', id).then((info) => {
+
+		if (info[0]) {
+			res.send(info[0]);
+		} else {
+			res.sendStatus(404);
+		}		
+
+	});
+
 });
 
 
