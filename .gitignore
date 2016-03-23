@@ -1,1 +1,6 @@
 *.DS_Store
+*.sublime-*
+node_modules/*
+jshint.json
+*.db
+*.log
