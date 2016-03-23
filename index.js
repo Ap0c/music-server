@@ -6,6 +6,8 @@ let fs = require('fs');
 let express = require('express');
 let sqlite3 = require('sqlite3').verbose();
 
+let scan = require('./scan');
+
 
 // ----- Setup ----- //
 
