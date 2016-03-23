@@ -8,12 +8,13 @@ var express = require('express');
 // ----- Setup ----- //
 
 var app = express();
+app.use(express.static('static'));
 
 
 // ----- Routes ----- //
 
 app.get('/', (req, res) => {
-	res.send('hello world');
+	res.sendFile(__dirname + '/app.html');
 });
 
 
