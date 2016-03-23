@@ -1,0 +1,11 @@
+{
+  "name": "music",
+  "version": "0.1.0",
+  "description": "A network music player.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ap0c",
+  "license": "ISC"
+}
