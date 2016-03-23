@@ -74,6 +74,10 @@ app.get('/db', (req, res) => {
 	res.send('Database result');
 });
 
+app.get('/db/:songId', (req, res) => {
+	res.send(`Requested song ${req.params.songId}.`);
+});
+
 
 // ----- Run ----- //
 
