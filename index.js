@@ -2,6 +2,7 @@
 
 // ----- Requires ----- //
 
+let fs = require('fs');
 let express = require('express');
 let sqlite3 = require('sqlite3').verbose();
 
@@ -9,6 +10,7 @@ let sqlite3 = require('sqlite3').verbose();
 // ----- Setup ----- //
 
 // Sqlite database.
+let DB_SCHEMA = 'schema.sql';
 let DB_FILE = 'music.db';
 
 let app = express();
@@ -17,14 +19,34 @@ app.use('/static', express.static('static'));
 
 // ----- Functions ----- //
 
+// Creates the database from the schema.
+function initDb () {
+
+	return new Promise((res, rej) => {
+
+		fs.readFile(DB_SCHEMA, 'utf8', (err, data) => {
+
+			let db = new sqlite3.Database(DB_FILE);
+			db.serialize(buildSchema);
+
+			function buildSchema () {
+				db.exec(data, res);
+			}
+
+			db.close();
+
+		});
+
+	});
+
+}
+
 // General-purpose function for querying the database.
 function dbQuery (sql, params) {
 
 	return new Promise((res, rej) => {
 
 		let db = new sqlite3.Database(DB_FILE);
-		let result = null;
-
 		db.serialize(runQuery);
 
 		function runQuery () {
@@ -55,6 +77,10 @@ app.get('/db', (req, res) => {
 
 // ----- Run ----- //
 
-app.listen(3000, () => {
-	console.log('Running on 3000...');
+initDb().then(() => {
+
+	app.listen(3000, () => {
+		console.log('Running on 3000...');
+	});
+
 });
