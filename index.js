@@ -106,6 +106,23 @@ function dbInsert (sql, params) {
 
 }
 
+// Adds library to the database and creates symlink to music.
+function addLibrary (res, name, libraryPath) {
+
+	let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
+
+	dbInsert(query, [name, libraryPath]).then((rowId) => {
+
+		let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
+
+		fs.symlink(libraryPath, symlinkPath, (err) => {
+			res.sendStatus(err ? 500 : 201);
+		});
+
+	});
+
+}
+
 
 // ----- Routes ----- //
 
@@ -157,20 +174,7 @@ app.post('/add_library', (req, res) => {
 	fs.stat(libraryPath, (err, stats) => {
 
 		if (!err && stats.isDirectory()) {
-
-			let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
-
-			dbInsert(query, [name, libraryPath]).then((rowId) => {
-
-				let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
-				fs.symlink(libraryPath, symlinkPath, (err) => {
-					res.sendStatus(err ? 500 : 201);
-				});
-
-				
-
-			});
-
+			addLibrary(res, name, libraryPath);
 		} else {
 			res.status(400).send('No such path on the file system.');
 		}
