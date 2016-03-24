@@ -11,13 +11,11 @@ let Db = require('./db');
 // ----- Functions ----- //
 
 // Checks if something is a directory.
-function isDir (path, directory) {
+function isDir (directory) {
 
 	return new Promise((res, rej) => {
 
-		let fullpath = path.join(path, directory);
-
-		fs.stat(fullpath, (err, stats) => {
+		fs.stat(directory, (err, stats) => {
 
 			if (err) {
 				rej(err);
@@ -31,28 +29,100 @@ function isDir (path, directory) {
 
 }
 
+// Resolves with an album object, or null if album is invalid.
+function getAlbum (artistPath, albumDir) {
+
+	return new Promise((res, rej) => {
+
+		let albumPath = path.join(artistPath, albumDir);
+
+		isDir(albumPath).then((validAlbum) => {
+
+			if (validAlbum) {
+				res({ name: albumDir, dirname: albumDir });
+			} else {
+				res(null);
+			}
+
+		});
+
+	});
+
+}
+
+// Builds a list of albums for a particular artist.
+function readAlbums (artistPath) {
+
+	return new Promise((res, rej) => {
+
+		fs.readdir(artistPath, (err, files) => {
+
+			if (err) {
+				rej(err);
+			}
+
+			let getAlbums = files.map((file) => {
+				getAlbum(artistPath, file);
+			});
+
+			Promise.all(getAlbums).then((albums) => {
+				res(albums.filter((album) => { return album; }));
+			});
+
+		});
+
+	});
+
+}
+
+// Resolves with an artist object, or null if artist is invalid.
+function getArtist (libraryPath, artistDir) {
+
+	return new Promise((res, rej) => {
+
+		let artistPath = path.join(libraryPath, artistDir);
+
+		isDir(artistPath).then((validArtist) => {
+
+			if (validArtist) {
+
+				let artist = { name: artistDir, dirname: artistDir };
+
+				readAlbums(artistPath).then((albums) => {
+
+					artist.albums = albums;
+					res(artist);
+
+				});
+
+			} else {
+				res(null);
+			}
+
+		});
+
+	});
+
+}
+
+// Builds a list of artists and their corresponding albums.
 function readArtists (library) {
 
-	let artists = [];
-	let libraryPath = library.path;
+	return new Promise((res, rej) => {
 
-	fs.readdir(library, (err, files) => {
+		fs.readdir(library.path, (err, files) => {
 
-		let checkDirs = [];
-
-		for (let file of files) {
-			checkDirs.push(isDir(library, file));
-		}
-
-		Promise.all(checkDirs).then((valids) => {
-
-			for (var i = files.length - 1; i >= 0; i--) {
-
-				if (valids[i]) {
-					artists.append({ name: files[i], dirname: files[i] });
-				}
-
+			if (err) {
+				rej(err);
 			}
+
+			let getArtists = files.map((file) => {
+				getArtist(library.path, file);
+			});
+
+			Promise.all(getArtists).then((artists) => {
+				res(artists.filter((artist) => { return artist; }));
+			});
 
 		});
 
