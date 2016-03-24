@@ -5,6 +5,7 @@
 let fs = require('fs');
 let express = require('express');
 let sqlite3 = require('sqlite3').verbose();
+let bodyParser = require('body-parser');
 
 let scan = require('./scan');
 
@@ -15,8 +16,12 @@ let scan = require('./scan');
 let DB_SCHEMA = 'schema.sql';
 let DB_FILE = 'music.db';
 
+// Sets up app.
 let app = express();
+
+// Static files and POSTed forms.
 app.use('/static', express.static('static'));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 
 // ----- Functions ----- //
