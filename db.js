@@ -91,12 +91,36 @@ module.exports = function Db (dbFile) {
 
 	}
 
+	// Runs multiple insert queries.
+	function dbMany (sql, params) {
+
+		return new Promise((res, rej) => {
+
+			connectDb(runQueries);
+
+			function runQueries (db) {
+
+				return () => {
+
+					for (let paramset of params) {
+						db.run(sql, paramset, res);
+					}
+
+				};
+
+			}
+
+		});
+
+	}
+
 	// ----- Interface ----- //
 
 	return {
 		init: initDb,
 		query: dbQuery,
-		insert: dbInsert
+		insert: dbInsert,
+		many: dbMany
 	};
 
 };
