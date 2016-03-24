@@ -9,15 +9,28 @@ let Db = require('./db');
 
 // ----- Functions ----- //
 
+function diffMusic (db, library, currentSongs) {
+
+
+
+}
+
 // Synchronises the music on disk with the database.
 function syncMusic (db, library) {
 
 	db.query('SELECT path, id FROM songs').then((stored_songs) => {
 
-		diffMusic(db, library, stored_songs).then((songsAdd) => {
+		diffMusic(db, library, stored_songs).then((songsDiff) => {
 
-			db.many(`INSERT INTO songs (name, artist, album, path)
-				VALUES ($name, $artist, $album, $path)`, songsAdd);
+			let insertions = [
+				db.many(`INSERT INTO songs (name, artist, album, path)
+					VALUES ($name, $artist, $album, $path)`, songsDiff.add),
+				db.many('DELETE FROM songs WHERE id = ?', songsDiff.delete),
+				db.many('DELETE FROM artists WHERE id = ?', songsDiff.artists),
+				db.many('DELETE FROM albums WHERE id = ?', songsDiff.albums)
+			];
+
+			Promise.all(insertions);
 
 		});
 
