@@ -3,6 +3,7 @@
 // ----- Requires ----- //
 
 let fs = require('fs');
+let path = require('path');
 let express = require('express');
 let sqlite3 = require('sqlite3').verbose();
 let bodyParser = require('body-parser');
@@ -70,6 +71,28 @@ function dbQuery (sql, params) {
 
 }
 
+// Runs an insert query and resolves with the row id.
+function dbInsert (sql, params) {
+
+	return new Promise((res, rej) => {
+
+		let db = new sqlite3.Database(DB_FILE);
+		db.serialize(runQuery);
+
+		function runQuery () {
+			db.run(sql, params, handle);
+		}
+
+		function handle (err) {
+			res(this.lastID);
+		}
+
+		db.close();
+
+	});
+
+}
+
 
 // ----- Routes ----- //
 
@@ -107,6 +130,35 @@ app.get('/db/:songId', (req, res) => {
 		} else {
 			res.sendStatus(404);
 		}		
+
+	});
+
+});
+
+// Adds a music library and path.
+app.put('/add_library', (req, res) => {
+
+	let libraryPath = req.body.libraryPath;
+	let name = req.body.name;
+
+	fs.stat(libraryPath, (err, stats) => {
+
+		if (stats.isDirectory()) {
+
+			let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
+
+			dbInsert(query, [name, libraryPath]).then((rowId) => {
+
+				let symlinkPath = path.join(__dirname, 'static/music', rowId);
+				fs.symlink(libraryPath, symlinkPath);
+
+				res.sendStatus(201);
+
+			});
+
+		} else {
+			res.status(400).send('No such path on the file system.');
+		}
 
 	});
 
