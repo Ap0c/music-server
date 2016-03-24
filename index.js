@@ -149,23 +149,25 @@ app.get('/db/:songId', (req, res) => {
 });
 
 // Adds a music library and path.
-app.put('/add_library', (req, res) => {
+app.post('/add_library', (req, res) => {
 
-	let libraryPath = req.body.libraryPath;
+	let libraryPath = req.body.library_path;
 	let name = req.body.name;
 
 	fs.stat(libraryPath, (err, stats) => {
 
-		if (stats.isDirectory()) {
+		if (!err && stats.isDirectory()) {
 
 			let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
 
 			dbInsert(query, [name, libraryPath]).then((rowId) => {
 
-				let symlinkPath = path.join(__dirname, 'static/music', rowId);
-				fs.symlink(libraryPath, symlinkPath);
+				let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
+				fs.symlink(libraryPath, symlinkPath, (err) => {
+					res.sendStatus(err ? 500 : 201);
+				});
 
-				res.sendStatus(201);
+				
 
 			});
 
