@@ -29,6 +29,31 @@ function isDir (directory) {
 
 }
 
+// Reads the files in a directory and extracts info.
+function readDirectory (directory, getInfo) {
+
+	return new Promise((res, rej) => {
+
+		fs.readdir(directory, (err, files) => {
+
+			if (err) {
+				rej(err);
+			}
+
+			let info = files.map((file) => {
+				return getInfo(directory, file);
+			});
+
+			Promise.all(info).then((metadata) => {
+				res(metadata.filter((datum) => { return datum; }));
+			});
+
+		});
+
+	});
+
+}
+
 // Resolves with an album object, or null if album is invalid.
 function getAlbum (artistPath, albumDir) {
 
@@ -50,31 +75,6 @@ function getAlbum (artistPath, albumDir) {
 
 }
 
-// Builds a list of albums for a particular artist.
-function readAlbums (artistPath) {
-
-	return new Promise((res, rej) => {
-
-		fs.readdir(artistPath, (err, files) => {
-
-			if (err) {
-				rej(err);
-			}
-
-			let getAlbums = files.map((file) => {
-				return getAlbum(artistPath, file);
-			});
-
-			Promise.all(getAlbums).then((albums) => {
-				res(albums.filter((album) => { return album; }));
-			});
-
-		});
-
-	});
-
-}
-
 // Resolves with an artist object, or null if artist is invalid.
 function getArtist (libraryPath, artistDir) {
 
@@ -88,7 +88,7 @@ function getArtist (libraryPath, artistDir) {
 
 				let artist = { name: artistDir, dirname: artistDir };
 
-				readAlbums(artistPath).then((albums) => {
+				readDirectory(artistPath, getAlbum).then((albums) => {
 
 					artist.albums = albums;
 					res(artist);
@@ -105,30 +105,6 @@ function getArtist (libraryPath, artistDir) {
 
 }
 
-// Builds a list of artists and their corresponding albums.
-function readArtists (library) {
-
-	return new Promise((res, rej) => {
-
-		fs.readdir(library.path, (err, files) => {
-
-			if (err) {
-				rej(err);
-			}
-
-			let getArtists = files.map((file) => {
-				return getArtist(library.path, file);
-			});
-
-			Promise.all(getArtists).then((artists) => {
-				res(artists.filter((artist) => { return artist; }));
-			});
-
-		});
-
-	});
-
-}
 
 function diffMusic (db, library, currentSongs) {
 
@@ -136,7 +112,7 @@ function diffMusic (db, library, currentSongs) {
 
 		let toAdd = [];
 
-		readArtists(library).then(res);
+		readDirectory(library.path, getArtist).then(res);
 
 	});
 
