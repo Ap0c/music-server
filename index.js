@@ -5,9 +5,9 @@
 let fs = require('fs');
 let path = require('path');
 let express = require('express');
-let sqlite3 = require('sqlite3').verbose();
 let bodyParser = require('body-parser');
 
+let Db = require('./db');
 let scan = require('./scan');
 
 
@@ -17,8 +17,9 @@ let scan = require('./scan');
 let DB_SCHEMA = 'schema.sql';
 let DB_FILE = 'music.db';
 
-// Sets up app.
+// Sets up app and db.
 let app = express();
+let db = Db(DB_FILE);
 
 // Static files and POSTed forms.
 app.use('/static', express.static('static'));
@@ -27,91 +28,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // ----- Functions ----- //
 
-// Connects to the database and runs an operation on it.
-function connectDb (operation) {
-
-	let db = new sqlite3.Database(DB_FILE);
-
-	db.serialize(operation(db));
-	db.close();
-
-}
-
-// Creates the database from the schema.
-function initDb () {
-
-	return new Promise((res, rej) => {
-
-		fs.readFile(DB_SCHEMA, 'utf8', (err, data) => {
-
-			connectDb(buildSchema);
-
-			function buildSchema (db) {
-				return () => { db.exec(data, res); };
-			}
-
-		});
-
-	});
-
-}
-
-// General-purpose function for querying the database.
-function dbQuery (sql, params) {
-
-	return new Promise((res, rej) => {
-
-		connectDb(runQuery);
-
-		function runQuery (db) {
-			return () => { db.all(sql, params, result); };
-		}
-
-		function result (err, rows) {
-
-			if (err) {
-				rej(err);
-			} else {
-				res(rows);
-			}
-
-		}
-
-	});
-
-}
-
-// Runs an insert query and resolves with the row id.
-function dbInsert (sql, params) {
-
-	return new Promise((res, rej) => {
-
-		connectDb(runQuery);
-
-		function runQuery (db) {
-			return () => { db.run(sql, params, handle); };
-		}
-
-		function handle (err) {
-
-			if (err) {
-				rej(err);
-			} else {
-				res(this.lastID);
-			}
-
-		}
-
-	});
-
-}
-
 // Adds library to the database and creates symlink to music.
 function addLibrary (res, name, libraryPath) {
 
 	let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
 
-	dbInsert(query, [name, libraryPath]).then((rowId) => {
+	db.insert(query, [name, libraryPath]).then((rowId) => {
 
 		let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
 
@@ -135,9 +57,9 @@ app.get('/', (req, res) => {
 app.get('/db', (req, res) => {
 
 	let queries = [
-		dbQuery('SELECT * FROM songs'),
-		dbQuery('SELECT * FROM artists'),
-		dbQuery('SELECT * FROM albums')
+		db.query('SELECT * FROM songs'),
+		db.query('SELECT * FROM artists'),
+		db.query('SELECT * FROM albums')
 	];
 
 	Promise.all(queries).then((results) => {
@@ -153,7 +75,7 @@ app.get('/db/:songId', (req, res) => {
 
 	let id = req.params.songId;
 
-	dbQuery('SELECT * FROM songs WHERE id = ?', id).then((info) => {
+	db.query('SELECT * FROM songs WHERE id = ?', id).then((info) => {
 
 		if (info[0]) {
 			res.send(info[0]);
@@ -188,7 +110,7 @@ app.post('/add_library', (req, res) => {
 
 // ----- Run ----- //
 
-initDb().then(() => {
+db.init(DB_SCHEMA).then(() => {
 
 	app.listen(3000, () => {
 		console.log('Running on 3000...');
