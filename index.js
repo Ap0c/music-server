@@ -141,9 +141,9 @@ app.get('/db', (req, res) => {
 	];
 
 	Promise.all(queries).then((results) => {
-
 		res.send({songs: results[0], artists: results[1], albums: results[2]});
-
+	}).catch((err) => {
+		res.sendStatus(500);
 	});
 
 });
@@ -161,6 +161,8 @@ app.get('/db/:songId', (req, res) => {
 			res.sendStatus(404);
 		}		
 
+	}).catch((err) => {
+		res.sendStatus(500);
 	});
 
 });
