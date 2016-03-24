@@ -27,6 +27,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // ----- Functions ----- //
 
+// Connects to the database and runs an operation on it.
+function connectDb (operation) {
+
+	let db = new sqlite3.Database(DB_FILE);
+
+	db.serialize(operation(db));
+	db.close();
+
+}
+
 // Creates the database from the schema.
 function initDb () {
 
@@ -34,14 +44,11 @@ function initDb () {
 
 		fs.readFile(DB_SCHEMA, 'utf8', (err, data) => {
 
-			let db = new sqlite3.Database(DB_FILE);
-			db.serialize(buildSchema);
+			connectDb(buildSchema);
 
-			function buildSchema () {
-				db.exec(data, res);
+			function buildSchema (db) {
+				return () => { db.exec(data, res); };
 			}
-
-			db.close();
 
 		});
 
@@ -54,18 +61,21 @@ function dbQuery (sql, params) {
 
 	return new Promise((res, rej) => {
 
-		let db = new sqlite3.Database(DB_FILE);
-		db.serialize(runQuery);
+		connectDb(runQuery);
 
-		function runQuery () {
-			db.all(sql, params, handle);
+		function runQuery (db) {
+			return () => { db.all(sql, params, result); };
 		}
 
-		function handle (err, rows) {
-			res(rows);
-		}
+		function result (err, rows) {
 
-		db.close();
+			if (err) {
+				rej(err);
+			} else {
+				res(rows);
+			}
+
+		}
 
 	});
 
@@ -76,18 +86,21 @@ function dbInsert (sql, params) {
 
 	return new Promise((res, rej) => {
 
-		let db = new sqlite3.Database(DB_FILE);
-		db.serialize(runQuery);
+		connectDb(runQuery);
 
-		function runQuery () {
-			db.run(sql, params, handle);
+		function runQuery (db) {
+			return () => { db.run(sql, params, handle); };
 		}
 
 		function handle (err) {
-			res(this.lastID);
-		}
 
-		db.close();
+			if (err) {
+				rej(err);
+			} else {
+				res(this.lastID);
+			}
+
+		}
 
 	});
 
