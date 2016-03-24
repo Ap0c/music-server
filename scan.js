@@ -4,21 +4,29 @@
 
 let fs = require('fs');
 
+let Db = require('./db');
+
+
+// ----- Functions ----- //
+
+// Synchronises the music on disk with the database.
+function syncMusic (db, library) {
+
+	
+
+}
+
 
 // ----- Exports ----- //
 
-module.exports = function scan (directory) {
+module.exports = function scan (dbFile) {
 
-	fs.readdir(directory, (err, files) => {
+	let db = Db(dbFile);
 
-		console.log(files);
+	db.query('SELECT * FROM libraries').then((libraries) => {
 
-		for (let file of files) {
-
-			fs.stat(`${directory}/${file}`, (err, stats) => {
-				console.log(stats.isDirectory());
-			});
-
+		for (var library of libraries) {
+			syncMusic(db, library);
 		}
 
 	});
