@@ -62,7 +62,7 @@ function readAlbums (artistPath) {
 			}
 
 			let getAlbums = files.map((file) => {
-				getAlbum(artistPath, file);
+				return getAlbum(artistPath, file);
 			});
 
 			Promise.all(getAlbums).then((albums) => {
@@ -117,7 +117,7 @@ function readArtists (library) {
 			}
 
 			let getArtists = files.map((file) => {
-				getArtist(library.path, file);
+				return getArtist(library.path, file);
 			});
 
 			Promise.all(getArtists).then((artists) => {
@@ -132,8 +132,13 @@ function readArtists (library) {
 
 function diffMusic (db, library, currentSongs) {
 
-	let toAdd = [];
-	let artists = readArtists(library);
+	return new Promise((res, rej) => {
+
+		let toAdd = [];
+
+		readArtists(library).then(res);
+
+	});
 
 }
 
@@ -142,20 +147,26 @@ function syncMusic (db, library) {
 
 	db.query('SELECT path, id FROM songs').then((stored_songs) => {
 
-		diffMusic(db, library, stored_songs).then((songsDiff) => {
-
-			let synchronisations = [
-				db.many(`INSERT INTO songs (name, artist, album, path)
-					VALUES ($name, $artist, $album, $path)`, songsDiff.add),
-				db.many('DELETE FROM songs WHERE id = ?', songsDiff.delete),
-				db.many('DELETE FROM artists WHERE id = ?', songsDiff.artists),
-				db.many('DELETE FROM albums WHERE id = ?', songsDiff.albums)
-			];
-
-			Promise.all(synchronisations);
-
+		diffMusic(db, library, stored_songs).then((artists) => {
+			console.log(artists);
 		});
 
+		// .then((songsDiff) => {
+
+			// let synchronisations = [
+			// 	db.many(`INSERT INTO songs (name, artist, album, path)
+			// 		VALUES ($name, $artist, $album, $path)`, songsDiff.add),
+			// 	db.many('DELETE FROM songs WHERE id = ?', songsDiff.delete),
+			// 	db.many('DELETE FROM artists WHERE id = ?', songsDiff.artists),
+			// 	db.many('DELETE FROM albums WHERE id = ?', songsDiff.albums)
+			// ];
+
+			// Promise.all(synchronisations);
+
+		// });
+
+	}).catch((err) => {
+		console.log(err);
 	});
 
 }
@@ -169,7 +180,7 @@ module.exports = function scan (dbFile) {
 
 	db.query('SELECT * FROM libraries').then((libraries) => {
 
-		for (var library of libraries) {
+		for (let library of libraries) {
 			syncMusic(db, library);
 		}
 
