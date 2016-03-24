@@ -29,8 +29,8 @@ function isDir (directory) {
 
 }
 
-// Reads the files in a directory and extracts info.
-function readDirectory (directory, getInfo) {
+// Promise-based file listing.
+function listDir (directory) {
 
 	return new Promise((res, rej) => {
 
@@ -38,15 +38,9 @@ function readDirectory (directory, getInfo) {
 
 			if (err) {
 				rej(err);
+			} else {
+				res(files);
 			}
-
-			let info = files.map((file) => {
-				return getInfo(directory, file);
-			});
-
-			Promise.all(info).then((metadata) => {
-				res(metadata.filter((datum) => { return datum; }));
-			});
 
 		});
 
@@ -54,22 +48,36 @@ function readDirectory (directory, getInfo) {
 
 }
 
+// Reads the files in a directory and extracts info.
+function readDirectory (directory, getInfo) {
+
+	return listDir(directory).then((files) => {
+
+		let info = files.map((file) => {
+			return getInfo(directory, file);
+		});
+
+		return Promise.all(info).then((metadata) => {
+			return metadata.filter((datum) => { return datum; });
+		});
+
+	});
+
+
+}
+
 // Resolves with an album object, or null if album is invalid.
 function getAlbum (artistPath, albumDir) {
 
-	return new Promise((res, rej) => {
+	let albumPath = path.join(artistPath, albumDir);
 
-		let albumPath = path.join(artistPath, albumDir);
+	return isDir(albumPath).then((validAlbum) => {
 
-		isDir(albumPath).then((validAlbum) => {
-
-			if (validAlbum) {
-				res({ name: albumDir, dirname: albumDir });
-			} else {
-				res(null);
-			}
-
-		});
+		if (validAlbum) {
+			return { name: albumDir, dirname: albumDir };
+		} else {
+			return null;
+		}
 
 	});
 
@@ -78,43 +86,32 @@ function getAlbum (artistPath, albumDir) {
 // Resolves with an artist object, or null if artist is invalid.
 function getArtist (libraryPath, artistDir) {
 
-	return new Promise((res, rej) => {
+	let artistPath = path.join(libraryPath, artistDir);
 
-		let artistPath = path.join(libraryPath, artistDir);
+	return isDir(artistPath).then((validArtist) => {
 
-		isDir(artistPath).then((validArtist) => {
+		if (validArtist) {
 
-			if (validArtist) {
+			let artist = { name: artistDir, dirname: artistDir };
 
-				let artist = { name: artistDir, dirname: artistDir };
+			return readDirectory(artistPath, getAlbum).then((albums) => {
 
-				readDirectory(artistPath, getAlbum).then((albums) => {
+				artist.albums = albums;
+				return artist;
 
-					artist.albums = albums;
-					res(artist);
+			});
 
-				});
-
-			} else {
-				res(null);
-			}
-
-		});
+		} else {
+			return null;
+		}
 
 	});
 
 }
 
-
 function diffMusic (db, library, currentSongs) {
 
-	return new Promise((res, rej) => {
-
-		let toAdd = [];
-
-		readDirectory(library.path, getArtist).then(res);
-
-	});
+	return readDirectory(library, getArtist);
 
 }
 
@@ -124,7 +121,7 @@ function syncMusic (db, library) {
 	db.query('SELECT path, id FROM songs').then((stored_songs) => {
 
 		diffMusic(db, library, stored_songs).then((artists) => {
-			console.log(artists);
+			console.log(artists[0]);
 		});
 
 		// .then((songsDiff) => {
@@ -157,7 +154,7 @@ module.exports = function scan (dbFile) {
 	db.query('SELECT * FROM libraries').then((libraries) => {
 
 		for (let library of libraries) {
-			syncMusic(db, library);
+			syncMusic(db, library.path);
 		}
 
 	});
