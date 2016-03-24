@@ -66,44 +66,84 @@ function readDirectory (directory, getInfo) {
 
 }
 
+// Resolves with an song object, or null if song is invalid.
+function readSongs (albumPath, filename) {
+
+	let songPath = path.join(albumPath, filename);
+
+	return isDir(songPath).then((invalidSong) => {
+
+		if (invalidSong) {
+			return null;
+		}
+
+		let songName = path.parse(filename).name;
+		return { name: songName, path: songPath };
+
+	});
+
+}
+
 // Resolves with an album object, or null if album is invalid.
-function getAlbum (artistPath, albumDir) {
+function readAlbum (artistPath, albumDir) {
 
 	let albumPath = path.join(artistPath, albumDir);
 
 	return isDir(albumPath).then((validAlbum) => {
 
-		if (validAlbum) {
-			return { name: albumDir, dirname: albumDir };
-		} else {
+		if (!validAlbum) {
 			return null;
 		}
+
+		return readDirectory(albumPath, readSongs).then((songs) => {
+
+			return { name: albumDir, dirname: albumDir, songs: songs };
+
+		});
 
 	});
 
 }
 
 // Resolves with an artist object, or null if artist is invalid.
-function getArtist (libraryPath, artistDir) {
+function readArtist (libraryPath, artistDir) {
 
 	let artistPath = path.join(libraryPath, artistDir);
 
 	return isDir(artistPath).then((validArtist) => {
 
-		if (validArtist) {
+		if (!validArtist) {
+			return null;
+		}
 
-			let artist = { name: artistDir, dirname: artistDir };
+		return readDirectory(artistPath, readAlbum).then((albums) => {
 
-			return readDirectory(artistPath, getAlbum).then((albums) => {
+			return { name: artistDir, dirname: artistDir, albums: albums };
 
-				artist.albums = albums;
-				return artist;
+		});
+
+	});
+
+}
+
+
+function getArtist (db, artist) {
+
+	db.query('SELECT id FROM artists WHERE dirname = ?',
+		artist.dirname).then((result) => {
+
+		if (result.length === 0) {
+
+			return db.insert(`INSERT INTO artists (name, dirname)
+				VALUES ($name, $dirname)`, artist).then((rowId) => {
+
+				return rowId;
 
 			});
 
-		} else {
-			return null;
 		}
+
+		return result[0].id;
 
 	});
 
@@ -111,7 +151,7 @@ function getArtist (libraryPath, artistDir) {
 
 function diffMusic (db, library, currentSongs) {
 
-	return readDirectory(library, getArtist);
+	return readDirectory(library, readArtist);
 
 }
 
@@ -121,7 +161,7 @@ function syncMusic (db, library) {
 	db.query('SELECT path, id FROM songs').then((stored_songs) => {
 
 		diffMusic(db, library, stored_songs).then((artists) => {
-			console.log(artists[0]);
+			console.log(artists[0].albums[0]);
 		});
 
 		// .then((songsDiff) => {
