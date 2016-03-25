@@ -99,7 +99,7 @@ function readAlbum (artistPath, albumDir) {
 
 		return readDirectory(albumPath, readSongs).then((songs) => {
 
-			return { name: albumDir, dirname: albumDir, songs: songs };
+			return { name: albumDir, dirname: albumPath, songs: songs };
 
 		});
 

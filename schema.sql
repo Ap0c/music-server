@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS artists
 	(id INTEGER PRIMARY KEY, name TEXT, dirname TEXT);
 
 CREATE TABLE IF NOT EXISTS albums
-	(id INTEGER PRIMARY KEY, name TEXT, artist INTEGER, dirname TEXT
+	(id INTEGER PRIMARY KEY, name TEXT, artist INTEGER, dirname TEXT,
 		FOREIGN KEY (artist) REFERENCES artists(id));
 
 CREATE TABLE IF NOT EXISTS songs

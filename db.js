@@ -10,15 +10,23 @@ let fs = require('fs');
 
 module.exports = function Db (dbFile) {
 
+	// ----- Properties ----- //
+
+	let db = null;
+
+
 	// ----- Functions ----- //
 
-	// Connects to the database and runs an operation on it.
-	function connectDb (operation) {
+	// Connects to the database.
+	function connectDb () {
+		db = new sqlite3.Database(dbFile);
+	}
 
-		let db = new sqlite3.Database(dbFile);
+	// Closes the database connection.
+	function closeDb () {
 
-		db.serialize(operation(db));
 		db.close();
+		db = null;
 
 	}
 
@@ -27,13 +35,25 @@ module.exports = function Db (dbFile) {
 
 		return new Promise((res, rej) => {
 
+			if (!db) {
+				rej('Database not open.');
+			}
+
 			fs.readFile(dbSchema, 'utf8', (err, data) => {
 
-				connectDb(buildSchema);
-
-				function buildSchema (db) {
-					return () => { db.exec(data, res); };
+				if (err) {
+					rej(err);
 				}
+
+				db.exec(data, (err) => {
+
+					if (err) {
+						rej(err);
+					} else {
+						res();
+					}
+
+				});
 
 			});
 
@@ -46,11 +66,11 @@ module.exports = function Db (dbFile) {
 
 		return new Promise((res, rej) => {
 
-			connectDb(runQuery);
-
-			function runQuery (db) {
-				return () => { db.all(sql, params, result); };
+			if (!db) {
+				rej('Database not open.');
 			}
+
+			db.all(sql, params, result);
 
 			function result (err, rows) {
 
@@ -71,11 +91,11 @@ module.exports = function Db (dbFile) {
 
 		return new Promise((res, rej) => {
 
-			connectDb(runQuery);
-
-			function runQuery (db) {
-				return () => { db.run(sql, params, handle); };
+			if (!db) {
+				rej('Database not open.');
 			}
+
+			db.run(sql, params, handle);
 
 			function handle (err) {
 
@@ -91,22 +111,32 @@ module.exports = function Db (dbFile) {
 
 	}
 
-	// Runs multiple insert queries.
+	// Runs multiple queries.
 	function dbMany (sql, params) {
 
 		return new Promise((res, rej) => {
 
-			connectDb(runQueries);
+			if (!db) {
+				rej('Database not open.');
+			}
 
-			function runQueries (db) {
+			let counter = 0;
 
-				return () => {
+			for (let paramset of params) {
+				db.run(sql, paramset, handle);
+			}
 
-					for (let paramset of params) {
-						db.run(sql, paramset, res);
-					}
+			function handle (err) {
 
-				};
+				if (err) {
+					rej(err);
+				}
+
+				counter++;
+
+				if (counter === params.length) {
+					res();
+				}
 
 			}
 
@@ -117,6 +147,8 @@ module.exports = function Db (dbFile) {
 	// ----- Interface ----- //
 
 	return {
+		connect: connectDb,
+		close: closeDb,
 		init: initDb,
 		query: dbQuery,
 		insert: dbInsert,

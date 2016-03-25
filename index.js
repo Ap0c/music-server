@@ -33,13 +33,23 @@ function addLibrary (res, name, libraryPath) {
 
 	let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
 
+	db.connect();
+
 	db.insert(query, [name, libraryPath]).then((rowId) => {
 
 		let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
 
 		fs.symlink(libraryPath, symlinkPath, (err) => {
+
 			res.sendStatus(err ? 500 : 201);
+			db.close();
+
 		});
+
+	}).catch((err) => {
+
+		res.sendStatus(500);
+		db.close();
 
 	});
 
@@ -56,6 +66,8 @@ app.get('/', (req, res) => {
 // Returns a copy of the full database as JSON.
 app.get('/db', (req, res) => {
 
+	db.connect();
+
 	let queries = [
 		db.query('SELECT * FROM songs'),
 		db.query('SELECT * FROM artists'),
@@ -63,9 +75,15 @@ app.get('/db', (req, res) => {
 	];
 
 	Promise.all(queries).then((results) => {
+
 		res.send({songs: results[0], artists: results[1], albums: results[2]});
+		db.close();
+
 	}).catch((err) => {
+
 		res.sendStatus(500);
+		db.close();
+
 	});
 
 });
@@ -74,6 +92,7 @@ app.get('/db', (req, res) => {
 app.get('/db/:songId', (req, res) => {
 
 	let id = req.params.songId;
+	db.connect();
 
 	db.query('SELECT * FROM songs WHERE id = ?', id).then((info) => {
 
@@ -81,10 +100,15 @@ app.get('/db/:songId', (req, res) => {
 			res.send(info[0]);
 		} else {
 			res.sendStatus(404);
-		}		
+		}
+
+		db.close();
 
 	}).catch((err) => {
+
 		res.sendStatus(500);
+		db.close();
+
 	});
 
 });
@@ -110,10 +134,16 @@ app.post('/add_library', (req, res) => {
 
 // ----- Run ----- //
 
+db.connect();
+
 db.init(DB_SCHEMA).then(() => {
+
+	db.close();
 
 	app.listen(3000, () => {
 		console.log('Running on 3000...');
 	});
 
+}).catch((err) => {
+	console.log(err);
 });
