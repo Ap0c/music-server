@@ -57,17 +57,13 @@ module.exports = function Db (dbFile) {
 
 			if (err) {
 				rej(err);
+			} else {
+
+				db.exec(data, (err) => {
+					err ? rej(err) : res();
+				});
+
 			}
-
-			db.exec(data, (err) => {
-
-				if (err) {
-					rej(err);
-				} else {
-					res();
-				}
-
-			});
 
 		});
 
@@ -79,13 +75,7 @@ module.exports = function Db (dbFile) {
 		db.all(sql, params, handle);
 
 		function handle (err, rows) {
-
-			if (err) {
-				rej(err);
-			} else {
-				res(rows);
-			}
-
+			err ? rej(err) : res(rows);
 		}
 
 	});
@@ -96,13 +86,7 @@ module.exports = function Db (dbFile) {
 		db.run(sql, params, handle);
 
 		function handle (err) {
-
-			if (err) {
-				rej(err);
-			} else {
-				res(this.lastID);
-			}
-
+			err ? rej(err) : res(this.lastID);
 		}
 
 	});
