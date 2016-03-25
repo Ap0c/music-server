@@ -63,7 +63,6 @@ function readDirectory (directory, getInfo) {
 
 	});
 
-
 }
 
 // Resolves with an song object, or null if song is invalid.
@@ -78,7 +77,10 @@ function readSongs (albumPath, filename) {
 		}
 
 		let songName = path.parse(filename).name;
-		return { name: songName, path: songPath };
+		let leadingNumber = parseInt(songName.split(' ')[0]);
+		let number = isNaN(leadingNumber) ? null : leadingNumber;
+
+		return { name: songName, path: songPath, number: number };
 
 	});
 
