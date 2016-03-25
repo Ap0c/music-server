@@ -160,9 +160,15 @@ function diffMusic (db, library, currentSongs) {
 // Synchronises the music on disk with the database.
 function syncMusic (db, library) {
 
-	db.query('SELECT path, id FROM songs').then((stored_songs) => {
+	db.query('SELECT path, id FROM songs').then((storedSongs) => {
 
-		diffMusic(db, library, stored_songs).then((artists) => {
+		let currentSongs = {};
+
+		storedSongs.forEach((song) => {
+			currentSongs[song.path] = song.id;
+		});
+
+		diffMusic(db, library, currentSongs).then((artists) => {
 			console.log(artists[0].albums[0]);
 		});
 
