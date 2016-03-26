@@ -147,7 +147,7 @@ function readArtist (libraryPath, artistDir) {
 // Retrieves the id of an artist, adding it to database where necessary.
 function getArtist (db, artist) {
 
-	db.query('SELECT id FROM artists WHERE dirname = ?',
+	return db.query('SELECT id FROM artists WHERE dirname = ?',
 		artist.dirname).then((result) => {
 
 		if (result.length === 0) {
@@ -167,41 +167,53 @@ function getArtist (db, artist) {
 
 }
 
-// Retrieves the full set of data on artists, albums and songs.
-function diffMusic (db, libraryPath, currentSongs) {
+// Helper function to remap retrieved row information.
+function remapRow (item, key, value) {
 
-	return readDirectory(libraryPath, readArtist);
+	let newItem = {};
+	newItem[key] = value;
+
+	return newItem;
+
+}
+
+// Retrieves the items currently stored in the database for the library.
+function oldLibrary (db, id) {
+
+	let getOld = [
+		db.query('SELECT dirname, id FROM artists WHERE library = ?', id),
+		db.query('SELECT dirname, id FROM albums WHERE library = ?', id),
+		db.query('SELECT path, id FROM songs WHERE library = ?', id)
+	];
+
+	return Promise.all(getOld).then((oldItems) => {
+
+		let artists = oldItems[0].map((artist) => {
+			return remapRow(artist, artist.dirname, artist.id);
+		});
+
+		let albums = oldItems[1].map((album) => {
+			return remapRow(album, album.dirname, album.id);
+		});
+
+		let songs = oldItems[1].map((song) => {
+			return remapRow(song, song.path, song.id);
+		});
+
+		return { artists: artists, albums: albums, songs: songs };
+
+	});
 
 }
 
 // Synchronises the music on disk with the database.
-function syncMusic (db, library) {
+function syncLibrary (db, library, id) {
 
-	return db.query('SELECT path, id FROM songs').then((storedSongs) => {
+	return oldLibrary(db, id).then((oldItems) => {
 
-		let currentSongs = {};
-
-		storedSongs.forEach((song) => {
-			currentSongs[song.path] = song.id;
-		});
-
-		diffMusic(db, library, currentSongs).then((artists) => {
+		return readDirectory(library, readArtist).then((artists) => {
 			console.log(artists[0]);
 		});
-
-		// .then((songsDiff) => {
-
-			// let synchronisations = [
-			// 	db.many(`INSERT INTO songs (name, artist, album, path)
-			// 		VALUES ($name, $artist, $album, $path)`, songsDiff.add),
-			// 	db.many('DELETE FROM songs WHERE id = ?', songsDiff.delete),
-			// 	db.many('DELETE FROM artists WHERE id = ?', songsDiff.artists),
-			// 	db.many('DELETE FROM albums WHERE id = ?', songsDiff.albums)
-			// ];
-
-			// Promise.all(synchronisations);
-
-		// });
 
 	});
 
@@ -226,7 +238,7 @@ module.exports = function scan (dbFile, musicDir) {
 				full: path.join(musicDir, library.id.toString())
 			};
 
-			syncLibraries.push(syncMusic(db, libraryPath));
+			syncLibraries.push(syncLibrary(db, libraryPath, library.id));
 
 		}
 
