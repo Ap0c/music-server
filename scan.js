@@ -160,7 +160,7 @@ function diffMusic (db, library, currentSongs) {
 // Synchronises the music on disk with the database.
 function syncMusic (db, library) {
 
-	db.query('SELECT path, id FROM songs').then((storedSongs) => {
+	return db.query('SELECT path, id FROM songs').then((storedSongs) => {
 
 		let currentSongs = {};
 
@@ -169,7 +169,7 @@ function syncMusic (db, library) {
 		});
 
 		diffMusic(db, library, currentSongs).then((artists) => {
-			console.log(artists[0].albums[0]);
+			console.log(artists[0]);
 		});
 
 		// .then((songsDiff) => {
@@ -186,8 +186,6 @@ function syncMusic (db, library) {
 
 		// });
 
-	}).catch((err) => {
-		console.log(err);
 	});
 
 }
@@ -195,15 +193,28 @@ function syncMusic (db, library) {
 
 // ----- Exports ----- //
 
-module.exports = function scan (dbFile) {
+module.exports = function scan (dbFile, musicDir) {
 
 	let db = Db(dbFile);
+	db.connect();
 
 	db.query('SELECT * FROM libraries').then((libraries) => {
 
+		let syncLibraries = [];
+
 		for (let library of libraries) {
-			syncMusic(db, library.path);
+			let relativePath = path.join(musicDir, library.id.toString());
+			syncLibraries.push(syncMusic(db, relativePath));
 		}
+
+		return Promise.all(syncLibraries);
+
+	}).then(() => {
+		db.close();
+	}).catch((err) => {
+
+		console.log(err);
+		db.close();
 
 	});
 
