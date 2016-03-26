@@ -207,11 +207,61 @@ function oldLibrary (db, id) {
 }
 
 
-function syncAlbums (db, albums, oldItems, libraryId, artistId) {
+function syncSongs (db, songs, oldItems, libraryId, artistId, albumId) {
 
+	for (let song of songs) {
 
+		let id = oldItems.songs[song.path];
+
+		if (id) {
+
+			delete oldItems.songs[song.path];
+			return Promise.resolve(id);
+
+		} else {
+
+			let query = `INSERT INTO songs
+				(name, number, artist, album, path, library)
+				VALUES (?, ?, ?, ?, ?, ?)`;
+			let params = [song.name, song.number, artistId, albumId, song.path,
+				libraryId];
+
+			return db.insert(query, params);
+
+		}
+
+	}
 
 }
+
+
+function syncAlbums (db, albums, oldItems, libraryId, artistId) {
+
+	for (let album of albums) {
+
+		let id = oldItems.albums[album.dirname];
+
+		if (id) {
+
+			delete oldItems.albums[album.dirname];
+			return syncSongs(db);
+
+		} else {
+
+			let query = `INSERT INTO albums (name, artist, dirname, library)
+				VALUES (?, ?, ?, ?)`;
+			let params = [album.name, artistId, album.dirname, libraryId];
+
+			return db.insert(query, params).then((rowId) => {
+				return syncSongs(db, artist.albums, oldItems, libraryId, rowId);
+			});
+
+		}
+
+	}
+
+}
+
 
 function syncArtist (db, artist, oldItems, libraryId) {
 
