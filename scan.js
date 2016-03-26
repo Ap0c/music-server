@@ -168,12 +168,15 @@ function getArtist (db, artist) {
 }
 
 // Helper function to remap retrieved row information.
-function remapRow (item, key, value) {
+function mapDirs (items, keyProperty, valueProperty) {
 
-	let newItem = {};
-	newItem[key] = value;
+	let newItems = {};
 
-	return newItem;
+	for (let item of items) {
+		newItems[item[keyProperty]] = item[valueProperty];
+	}
+
+	return newItems;
 
 }
 
@@ -188,17 +191,9 @@ function oldLibrary (db, id) {
 
 	return Promise.all(getOld).then((oldItems) => {
 
-		let artists = oldItems[0].map((artist) => {
-			return remapRow(artist, artist.dirname, artist.id);
-		});
-
-		let albums = oldItems[1].map((album) => {
-			return remapRow(album, album.dirname, album.id);
-		});
-
-		let songs = oldItems[1].map((song) => {
-			return remapRow(song, song.path, song.id);
-		});
+		let artists = mapDirs(oldItems[0], 'dirname', 'id');
+		let albums = mapDirs(oldItems[1], 'dirname', 'id');
+		let songs = mapDirs(oldItems[2], 'path', 'id');
 
 		return { artists: artists, albums: albums, songs: songs };
 
@@ -244,7 +239,7 @@ function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 		if (id) {
 
 			delete oldItems.albums[album.dirname];
-			return syncSongs(db);
+			return syncSongs(db, album.songs, oldItems, libraryId, artistId, id);
 
 		} else {
 
@@ -253,7 +248,8 @@ function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 			let params = [album.name, artistId, album.dirname, libraryId];
 
 			return db.insert(query, params).then((rowId) => {
-				return syncSongs(db, album.songs, oldItems, libraryId, rowId);
+				return syncSongs(db, album.songs, oldItems, libraryId,
+					artistId, rowId);
 			});
 
 		}
@@ -320,8 +316,6 @@ function addItems (db, database, disk, libraryId) {
 		additions.push(syncArtist(db, artist, database, libraryId));
 	}
 
-	console.log('two');
-
 	return Promise.all(additions);
 
 }
@@ -339,14 +333,10 @@ function syncLibrary (db, library, id) {
 		let database = oldAndNew[0];
 		let disk = oldAndNew[1];
 
-		console.log('one');
-
 		return addItems(db, database, disk, id).then(() => {
-			deleteItems(db, database);
+			return deleteItems(db, database);
 		});
 
-	}).catch((err) => {
-		console.log(err);
 	});
 
 }
