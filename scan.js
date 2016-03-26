@@ -59,8 +59,6 @@ function readDirectory (dirPath, getInfo) {
 
 		return Promise.all(info).then((metadata) => {
 			return metadata.filter((datum) => { return datum; });
-		}).catch((err) => {
-			console.log(err);
 		});
 
 	});
@@ -70,9 +68,12 @@ function readDirectory (dirPath, getInfo) {
 // Resolves with an song object, or null if song is invalid.
 function readSongs (albumPath, filename) {
 
-	let songPath = path.join(albumPath.full, filename);
+	let songPath = {
+		full: path.join(albumPath.full, filename),
+		relative: path.join(albumPath.relative, filename)
+	};
 
-	return isDir(songPath).then((invalidSong) => {
+	return isDir(songPath.full).then((invalidSong) => {
 
 		if (invalidSong) {
 			return null;
@@ -82,7 +83,7 @@ function readSongs (albumPath, filename) {
 		let leadingNumber = parseInt(songName.split(' ')[0]);
 		let number = isNaN(leadingNumber) ? null : leadingNumber;
 
-		return { name: songName, path: songPath, number: number };
+		return { name: songName, path: songPath.relative, number: number };
 
 	});
 
