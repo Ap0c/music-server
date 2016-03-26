@@ -206,15 +206,55 @@ function oldLibrary (db, id) {
 
 }
 
+
+function syncAlbums (db, albums, oldItems, libraryId, artistId) {
+
+
+
+}
+
+function syncArtist (db, artist, oldItems, libraryId) {
+
+	let id = oldItems.artists[artist.dirname];
+
+	if (id) {
+
+		delete oldItems.artists[artist.dirname];
+		return syncAlbums(db, artist.albums, oldItems, libraryId, id);
+
+	} else {
+
+		let query = `INSERT INTO artists (name, dirname, library)
+			VALUES (?, ?, ?)`;
+		let params = [artist.name, artist.dirname, libraryId];
+
+		return db.insert(query, params).then((rowId) => {
+			return syncAlbums(db, artist.albums, oldItems, libraryId, rowId);
+		});
+
+	}
+
+}
+
 // Synchronises the music on disk with the database.
 function syncLibrary (db, library, id) {
 
-	return oldLibrary(db, id).then((oldItems) => {
+	let diskAndDatabase = [
+		oldLibrary(db, id),
+		readDirectory(library, readArtist)
+	];
 
-		return readDirectory(library, readArtist).then((artists) => {
-			console.log(artists[0]);
-		});
+	Promise.all(diskAndDatabase).then((oldAndNew) => {
 
+		let database = oldAndNew[0];
+		let disk = oldAndNew[1];
+
+		for (let artist of disk) {
+			syncArtist(db, artist, database, id);
+		}
+
+	}).catch((err) => {
+		console.log(err);
 	});
 
 }
