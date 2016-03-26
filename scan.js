@@ -206,7 +206,7 @@ function oldLibrary (db, id) {
 
 }
 
-
+// Adds an album's songs to the database.
 function syncSongs (db, songs, oldItems, libraryId, artistId, albumId) {
 
 	for (let song of songs) {
@@ -234,7 +234,7 @@ function syncSongs (db, songs, oldItems, libraryId, artistId, albumId) {
 
 }
 
-
+// Adds an artist's albums to the database.
 function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 
 	for (let album of albums) {
@@ -253,7 +253,7 @@ function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 			let params = [album.name, artistId, album.dirname, libraryId];
 
 			return db.insert(query, params).then((rowId) => {
-				return syncSongs(db, artist.albums, oldItems, libraryId, rowId);
+				return syncSongs(db, album.songs, oldItems, libraryId, rowId);
 			});
 
 		}
@@ -262,7 +262,7 @@ function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 
 }
 
-
+// Adds an artist to the database.
 function syncArtist (db, artist, oldItems, libraryId) {
 
 	let id = oldItems.artists[artist.dirname];
@@ -286,6 +286,46 @@ function syncArtist (db, artist, oldItems, libraryId) {
 
 }
 
+// Deletes all artists that are no longer on disk from the database.
+function deleteItems (db, toDelete) {
+
+	let deleteArtists = Object.keys(toDelete.artists).map((artist) => {
+		return toDelete.artists[artist];
+	});
+
+	let deleteAlbums = Object.keys(toDelete.albums).map((album) => {
+		return toDelete.albums[album];
+	});
+
+	let deleteSongs = Object.keys(toDelete.songs).map((song) => {
+		return toDelete.songs[song];
+	});
+
+	let deletions = [
+		db.many('DELETE FROM artists WHERE id = ?', deleteArtists),
+		db.many('DELETE FROM albums WHERE id = ?', deleteAlbums),
+		db.many('DELETE FROM songs WHERE id = ?', deleteSongs)
+	];
+
+	return Promise.all(deletions);
+
+}
+
+// Adds all artists on disk to the database.
+function addItems (db, database, disk, libraryId) {
+
+	let additions = [];
+
+	for (let artist of disk) {
+		additions.push(syncArtist(db, artist, database, libraryId));
+	}
+
+	console.log('two');
+
+	return Promise.all(additions);
+
+}
+
 // Synchronises the music on disk with the database.
 function syncLibrary (db, library, id) {
 
@@ -294,14 +334,16 @@ function syncLibrary (db, library, id) {
 		readDirectory(library, readArtist)
 	];
 
-	Promise.all(diskAndDatabase).then((oldAndNew) => {
+	return Promise.all(diskAndDatabase).then((oldAndNew) => {
 
 		let database = oldAndNew[0];
 		let disk = oldAndNew[1];
 
-		for (let artist of disk) {
-			syncArtist(db, artist, database, id);
-		}
+		console.log('one');
+
+		return addItems(db, database, disk, id).then(() => {
+			deleteItems(db, database);
+		});
 
 	}).catch((err) => {
 		console.log(err);
