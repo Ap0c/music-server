@@ -17,6 +17,9 @@ let scan = require('./scan');
 let DB_SCHEMA = 'schema.sql';
 let DB_FILE = 'music.db';
 
+// Music location.
+let MUSIC_DIR = 'static/music';
+
 // Sets up app and db.
 let app = express();
 let db = Db(DB_FILE);
@@ -28,23 +31,57 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // ----- Functions ----- //
 
-// Adds library to the database and creates symlink to music.
-function addLibrary (res, name, libraryPath) {
+// Inserts the library into the database.
+function insertLibrary (db, res, name, libraryPath) {
 
 	let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
 
-	db.connect();
+	return db.insert(query, [name, libraryPath]).then((id) => {
+		createSymlink(libraryPath, id);
+	}).then(() => {
 
-	db.insert(query, [name, libraryPath]).then((rowId) => {
+		res.sendStatus(201);
+		db.close();
 
-		let symlinkPath = path.join(__dirname, 'static/music', rowId.toString());
+	});
+
+}
+
+// Creates a symlink to the library in the music directory.
+function createSymlink (libraryPath, id) {
+
+	return new Promise((res, rej) => {
+
+		let symlinkPath = path.join(__dirname, MUSIC_DIR, id.toString());
 
 		fs.symlink(libraryPath, symlinkPath, (err) => {
 
-			res.sendStatus(err ? 500 : 201);
-			db.close();
+			if (err) {
+				rej(err);
+			} else {
+				res();
+			}
 
 		});
+
+	});
+
+}
+
+// Adds library to the database and creates symlink to music.
+function addLibrary (res, name, libraryPath) {
+
+	db.connect();
+
+	let query = 'SELECT * FROM libraries WHERE path = ?';
+
+	db.query(query, libraryPath).then((result) => {
+
+		if (result.length === 0) {
+			return insertLibrary(db, res, name, libraryPath);
+		} else {
+			res.sendStatus(409);
+		}
 
 	}).catch((err) => {
 
