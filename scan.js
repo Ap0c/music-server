@@ -49,16 +49,18 @@ function listDir (directory) {
 }
 
 // Reads the files in a directory and extracts info.
-function readDirectory (directory, getInfo) {
+function readDirectory (directory, relativePath, getInfo) {
 
 	return listDir(directory).then((files) => {
 
 		let info = files.map((file) => {
-			return getInfo(directory, file);
+			return getInfo(directory, relativePath, file);
 		});
 
 		return Promise.all(info).then((metadata) => {
 			return metadata.filter((datum) => { return datum; });
+		}).catch((err) => {
+			console.log(err);
 		});
 
 	});
@@ -66,7 +68,7 @@ function readDirectory (directory, getInfo) {
 }
 
 // Resolves with an song object, or null if song is invalid.
-function readSongs (albumPath, filename) {
+function readSongs (albumPath, dirname, filename) {
 
 	let songPath = path.join(albumPath, filename);
 
@@ -87,9 +89,10 @@ function readSongs (albumPath, filename) {
 }
 
 // Resolves with an album object, or null if album is invalid.
-function readAlbum (artistPath, albumDir) {
+function readAlbum (artistPath, relativePath, albumDir) {
 
 	let albumPath = path.join(artistPath, albumDir);
+	let dirname = path.join(relativePath, albumDir);
 
 	return isDir(albumPath).then((validAlbum) => {
 
@@ -97,9 +100,9 @@ function readAlbum (artistPath, albumDir) {
 			return null;
 		}
 
-		return readDirectory(albumPath, readSongs).then((songs) => {
+		return readDirectory(albumPath, dirname, readSongs).then((songs) => {
 
-			return { name: albumDir, dirname: albumPath, songs: songs };
+			return { name: albumDir, dirname: dirname, songs: songs };
 
 		});
 
@@ -108,9 +111,10 @@ function readAlbum (artistPath, albumDir) {
 }
 
 // Resolves with an artist object, or null if artist is invalid.
-function readArtist (libraryPath, artistDir) {
+function readArtist (libraryPath, relativePath, artistDir) {
 
 	let artistPath = path.join(libraryPath, artistDir);
+	let dirname = path.join(relativePath, artistDir);
 
 	return isDir(artistPath).then((validArtist) => {
 
@@ -118,9 +122,9 @@ function readArtist (libraryPath, artistDir) {
 			return null;
 		}
 
-		return readDirectory(artistPath, readAlbum).then((albums) => {
+		return readDirectory(artistPath, dirname, readAlbum).then((albums) => {
 
-			return { name: artistDir, dirname: artistDir, albums: albums };
+			return { name: artistDir, dirname: dirname, albums: albums };
 
 		});
 
@@ -128,7 +132,7 @@ function readArtist (libraryPath, artistDir) {
 
 }
 
-
+// Retrieves the id of an artist, adding it to database where necessary.
 function getArtist (db, artist) {
 
 	db.query('SELECT id FROM artists WHERE dirname = ?',
@@ -151,9 +155,10 @@ function getArtist (db, artist) {
 
 }
 
+// Retrieves the full set of data on artists, albums and songs.
 function diffMusic (db, library, currentSongs) {
 
-	return readDirectory(library, readArtist);
+	return readDirectory(library.fullpath, library.relativePath, readArtist);
 
 }
 
@@ -203,8 +208,14 @@ module.exports = function scan (dbFile, musicDir) {
 		let syncLibraries = [];
 
 		for (let library of libraries) {
-			let relativePath = path.join(musicDir, library.id.toString());
-			syncLibraries.push(syncMusic(db, relativePath));
+
+			let libraryPath = {
+				relativePath: library.id.toString(),
+				fullpath: path.join(musicDir, library.id.toString())
+			};
+
+			syncLibraries.push(syncMusic(db, libraryPath));
+
 		}
 
 		return Promise.all(syncLibraries);
