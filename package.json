@@ -4,13 +4,17 @@
   "description": "A network music player.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "cp node_modules/lovefield/dist/lovefield.min.js static"
   },
   "author": "Ap0c",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.0",
     "express": "^4.13.4",
+    "lovefield": "^2.1.7",
+    "page": "^1.7.1",
+    "pug": "^2.0.0-alpha1",
     "sqlite3": "^3.1.2"
   }
 }
