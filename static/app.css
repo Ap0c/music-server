@@ -43,3 +43,8 @@ html, body {
 #navigation .list-name, .plus {
 	padding: 0.5em;
 }
+
+#navigation a {
+	text-decoration: none;
+	color: inherit;
+}
