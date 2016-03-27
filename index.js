@@ -9,16 +9,17 @@ let bodyParser = require('body-parser');
 
 let Db = require('./db');
 let scan = require('./scan');
+let views = require('./views');
 
 
 // ----- Setup ----- //
 
 // Sqlite database.
-let DB_SCHEMA = 'schema.sql';
-let DB_FILE = 'music.db';
+const DB_SCHEMA = 'schema.sql';
+const DB_FILE = 'music.db';
 
 // Music location.
-let MUSIC_DIR = 'static/music';
+const MUSIC_DIR = 'static/music';
 
 // Sets up app and db.
 let app = express();
@@ -64,7 +65,7 @@ function errHandle (err, req, res, next) {
 }
 
 // Inserts the library into the database.
-function insertLibrary (db, res, name, libraryPath) {
+function insertLibrary (res, name, libraryPath) {
 
 	let query = 'INSERT INTO libraries (name, path) VALUES (?, ?)';
 
@@ -107,97 +108,12 @@ function addLibrary (res, name, libraryPath) {
 	return db.query(query, libraryPath).then((result) => {
 
 		if (result.length === 0) {
-			return insertLibrary(db, res, name, libraryPath);
+			return insertLibrary(res, name, libraryPath);
 		} else {
 			res.sendStatus(409);
 		}
 
 	});
-
-}
-
-// Gets the type for a name retrieval query.
-function nameType (type) {
-
-	if (['artists', 'albums', 'songs'].indexOf(type) > -1) {
-		return 'library';
-	} else {
-		return type;
-	}
-
-}
-
-// Retrieves the name of a given library, album or artist.
-function getName (db, res, type, id) {
-
-	let queryType = nameType(type);
-
-	let queries = {
-		library: 'SELECT name FROM libraries WHERE id = ?',
-		artist: 'SELECT name FROM artists WHERE id = ?',
-		album: 'SELECT name FROM albums WHERE id = ?'
-	};
-
-	return db.query(queries[queryType], id).then((result) => {
-
-		if (result.length === 0) {
-
-			res.sendStatus(404);
-			return null;
-
-		} else {
-			return result[0].name;
-		}
-
-	});
-
-}
-
-// Gets the view title, or returns null if the view does not exist.
-function getTitle (db, res, type, id) {
-
-	let libraryTitles = {
-		artists: 'Artists',
-		albums: 'Albums',
-		songs: 'Songs'
-	};
-
-	return getName(db, res, type, id).then((name) => {
-
-		if (!name || ['artists', 'albums', 'songs'].indexOf(type) === -1) {
-			return name;
-		} else {
-			return `${name} - ${libraryTitles[type]}`;
-		}
-
-	});
-
-}
-
-// Retrieves a list and renders the view.
-function listView (db, res, type, id) {
-
-	db.connect();
-
-	let queries = {
-		artists: 'SELECT id, name FROM artists WHERE library = ?',
-		albums: 'SELECT id, name FROM albums WHERE library = ?',
-		songs: 'SELECT id, name FROM songs WHERE library = ?',
-		artist: 'SELECT id, name FROM albums WHERE artist = ?',
-		album: 'SELECT id, name FROM songs WHERE album = ?'
-	};
-
-	res.promise(getTitle(db, res, type, id).then((title) => {
-
-		if (title) {
-
-			return db.query(queries[type], id).then((list) => {
-				res.render('app', { title: title, list: list, view: type });
-			});
-
-		}
-
-	}));
 
 }
 
@@ -211,10 +127,13 @@ app.get('/', (req, res) => {
 
 	res.promise(db.query('SELECT id, name FROM libraries').then((libraries) => {
 
-		res.render('app',
-			{title: 'Music - Libraries',
+		res.render('app', {
+			title: 'Music - Libraries',
 			list: libraries,
-			view: 'libraries'
+			view: 'libraries',
+			url: (id) => {
+				return `/library/${id}`;
+			}
 		});
 
 	}));
@@ -223,25 +142,25 @@ app.get('/', (req, res) => {
 
 // Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
-	listView(db, res, 'artists', req.params.id);
+	views.list(db, res, 'artists', req.params.id);
 });
 
 // Lists the songs in a library.
 app.get('/library/:id/songs', (req, res) => {
-	listView(db, res, 'songs', req.params.id);
+	views.list(db, res, 'songs', req.params.id);
 });
 
 // Lists the albums in a library.
 app.get('/library/:id/albums', (req, res) => {
-	listView(db, res, 'albums', req.params.id);
+	views.list(db, res, 'albums', req.params.id);
 });
 
 app.get('/artist/:id', (req, res) => {
-	listView(db, res, 'artist', req.params.id);
+	views.list(db, res, 'artist', req.params.id);
 });
 
 app.get('/album/:id', (req, res) => {
-	listView(db, res, 'album', req.params.id);
+	views.list(db, res, 'album', req.params.id);
 });
 
 // Returns a copy of the full database as JSON.
