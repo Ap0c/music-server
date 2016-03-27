@@ -128,12 +128,14 @@ app.get('/', (req, res) => {
 	res.promise(db.query('SELECT id, name FROM libraries').then((libraries) => {
 
 		res.render('app', {
+
 			title: 'Music - Libraries',
 			list: libraries,
 			view: 'libraries',
 			url: (id) => {
 				return `/library/${id}`;
 			}
+
 		});
 
 	}));
@@ -142,25 +144,39 @@ app.get('/', (req, res) => {
 
 // Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
-	views.list(db, res, 'artists', req.params.id);
+
+	views.list('artists', req.params.id, db, res, (id) => {
+		return `/artist/${id}`;
+	});
+
 });
 
 // Lists the songs in a library.
 app.get('/library/:id/songs', (req, res) => {
-	views.list(db, res, 'songs', req.params.id);
+	views.list('songs', req.params.id, db, res);
 });
 
 // Lists the albums in a library.
 app.get('/library/:id/albums', (req, res) => {
-	views.list(db, res, 'albums', req.params.id);
+
+	views.list('albums', req.params.id, db, res, (id) => {
+		return `/album/${id}`;
+	});
+
 });
 
+// Lists the albums for an artist.
 app.get('/artist/:id', (req, res) => {
-	views.list(db, res, 'artist', req.params.id);
+
+	views.list('artist', req.params.id, db, res, (id) => {
+		return `/album/${id}`;
+	});
+
 });
 
+// Lists the songs for an album.
 app.get('/album/:id', (req, res) => {
-	views.list(db, res, 'album', req.params.id);
+	views.list('album', req.params.id, db, res);
 });
 
 // Returns a copy of the full database as JSON.

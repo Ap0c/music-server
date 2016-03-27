@@ -73,16 +73,23 @@ function getTitle (db, res, type, id) {
 }
 
 // Retrieves a list and renders the view.
-function listView (db, res, type, id) {
+function listView (view, id, db, res, urlCallback) {
 
 	db.connect();
 
-	res.promise(getTitle(db, res, type, id).then((title) => {
+	res.promise(getTitle(db, res, view, id).then((title) => {
 
 		if (title) {
 
-			return db.query(LIST_QUERIES[type], id).then((list) => {
-				res.render('app', { title: title, list: list, view: type });
+			return db.query(LIST_QUERIES[view], id).then((list) => {
+
+				res.render('app', {
+					title: title,
+					list: list,
+					view: view,
+					url: urlCallback
+				});
+
 			});
 
 		}

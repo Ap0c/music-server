@@ -2,5 +2,8 @@ if list
 	ul
 		each val in list
 			li(data-id=val.id)
-				span.list-name= val.name
+				if url
+					a.list-name(href=url(val.id))= val.name
+				else
+					span.list-name= val.name
 				span.plus +
