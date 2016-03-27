@@ -147,12 +147,20 @@ function libraryList (db, res, type, id) {
 		songs: 'SELECT id, name FROM songs WHERE library = ?'
 	};
 
+	let titles = {
+		artists: 'Artists',
+		albums: 'Albums',
+		songs: 'Songs'
+	};
+
 	res.promise(checkLibrary(db, res, id).then((name) => {
 
 		if (name) {
 
+			let title = `${name} - ${titles[type]}`;
+
 			return db.query(queries[type], id).then((list) => {
-				res.render('app', { list: list });
+				res.render('app', { title: title, list: list });
 			});
 
 		}
