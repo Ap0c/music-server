@@ -192,6 +192,60 @@ app.get('/library/:id/albums', (req, res) => {
 	libraryList(db, res, 'albums', req.params.id);
 });
 
+app.get('/artist/:id', (req, res) => {
+
+	let query = 'SELECT name FROM artists WHERE id = ?';
+
+	db.connect();
+
+	db.query(query, req.params.id).then((result) => {
+
+		if (result.length === 0) {
+			res.sendStatus(404);
+		} else {
+
+			let albumQuery = 'SELECT id, name FROM albums WHERE artist = ?';
+
+			db.query(albumQuery, req.params.id).then((albums) => {
+
+				let title = result[0].name;
+				res.render('app', { title: title, list: albums });
+
+			});
+
+		}
+
+	});
+
+});
+
+app.get('/album/:id', (req, res) => {
+
+	let query = 'SELECT name FROM albums WHERE id = ?';
+
+	db.connect();
+
+	db.query(query, req.params.id).then((result) => {
+
+		if (result.length === 0) {
+			res.sendStatus(404);
+		} else {
+
+			let songQuery = 'SELECT id, name FROM songs WHERE album = ?';
+
+			db.query(songQuery, req.params.id).then((albums) => {
+
+				let title = result[0].name;
+				res.render('app', { title: title, list: albums });
+
+			});
+
+		}
+
+	});
+
+});
+
 // Returns a copy of the full database as JSON.
 app.get('/db', (req, res) => {
 
