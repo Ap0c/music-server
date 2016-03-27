@@ -206,7 +206,13 @@ function listView (db, res, type, id) {
 
 // Returns the main app page.
 app.get('/', (req, res) => {
-	res.render('app');
+
+	db.connect();
+
+	res.promise(db.query('SELECT id, name FROM libraries').then((libraries) => {
+		res.render('app', { title: 'Music - Libraries', list: libraries });
+	}));
+
 });
 
 // Lists the artists in a library.
