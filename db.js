@@ -13,6 +13,7 @@ module.exports = function Db (dbFile) {
 	// ----- Properties ----- //
 
 	let db = null;
+	let changesMade = false;
 
 	// ----- Promise Wrapper ----- //
 
@@ -37,6 +38,59 @@ module.exports = function Db (dbFile) {
 
 	// ----- Functions ----- //
 
+	// Updates the database version.
+	let bumpVersion = wrap((res, rej) => {
+
+		if (changesMade) {
+			res();
+		} else {
+			db.run('UPDATE db_version SET version = version + ?', 1, handle);
+		}
+
+		function handle (err) {
+
+			if (err) {
+				rej(err);
+			} else {
+
+				changesMade = true;
+				res();
+
+			}
+
+		}
+
+	});
+
+	// Initialises the database version.
+	function initVersion (res, rej) {
+
+		return dbQuery('SELECT version FROM db_version').then((version) => {
+
+			if (version.length === 0) {
+
+				let query = 'INSERT INTO db_version VALUES (?)';
+
+				db.run(query, 1, (err) => {
+
+					if (err) {
+						rej(err);
+					} else {
+						res();
+					}
+
+				});
+
+			} else {
+				res();
+			}
+
+		}).catch((err) => {
+			rej(err);
+		});
+
+	}
+
 	// Connects to the database.
 	let connectDb = () => {
 		db = new sqlite3.Database(dbFile);
@@ -47,6 +101,7 @@ module.exports = function Db (dbFile) {
 
 		db.close();
 		db = null;
+		changesMade = false;
 
 	};
 
@@ -60,7 +115,13 @@ module.exports = function Db (dbFile) {
 			} else {
 
 				db.exec(data, (err) => {
-					err ? rej(err) : res();
+
+					if (err) {
+						rej(err);
+					} else {
+						initVersion(res, rej);
+					}
+
 				});
 
 			}
@@ -86,7 +147,19 @@ module.exports = function Db (dbFile) {
 		db.run(sql, params, handle);
 
 		function handle (err) {
-			err ? rej(err) : res(this.lastID);
+
+			if (err) {
+				rej(err);
+			} else {
+
+				bumpVersion().then(() => {
+					res(this.lastID);
+				}).catch((err) => {
+					rej(err);
+				});
+
+			}
+
 		}
 
 	});
@@ -106,11 +179,17 @@ module.exports = function Db (dbFile) {
 				rej(err);
 			} else {
 
-				counter++;
+				bumpVersion().then(() => {
 
-				if (counter === params.length) {
-					res();
-				}
+					counter++;
+
+					if (counter === params.length) {
+						res();
+					}
+
+				}).catch((err) => {
+					rej(err);
+				});
 
 			}
 

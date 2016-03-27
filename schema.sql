@@ -15,3 +15,6 @@ CREATE TABLE IF NOT EXISTS songs
 		FOREIGN KEY (artist) REFERENCES artists(id),
 		FOREIGN KEY (album) REFERENCES albums(id),
 		FOREIGN KEY (library) REFERENCES libraries(id));
+
+CREATE TABLE IF NOT EXISTS db_version
+	(version INTEGER);

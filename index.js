@@ -299,6 +299,17 @@ app.post('/add_library', (req, res) => {
 
 });
 
+// Retrieves the database version.
+app.get('/db_version', (req, res) => {
+
+	db.connect();
+
+	res.promise(db.query('SELECT * FROM db_version').then((version) => {
+		res.send(version[0]);
+	}));
+
+});
+
 
 // ----- Run ----- //
 
