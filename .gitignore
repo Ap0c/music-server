@@ -6,3 +6,4 @@ jshint.json
 *.log
 static/music/*
 static/lovefield.min.js
+static/fetch.js

@@ -5,7 +5,15 @@ var clientRouting = false;
 
 // ----- Modules ----- //
 
-var db = (function Database () {
+var Db = (function Database () {
+
+	return fetch('/db_version').then(function (res) {
+		return res.json();
+	}).then(function (parsed) {
+		return parsed.version;
+	}).catch(function (err) {
+		console.error('Could not get db version.');
+	});
 
 });
 
@@ -36,7 +44,17 @@ function navClicks () {
 
 }
 
+// Sets up interface.
+function setup () {
+
+	navClicks();
+	var db = Db().then(function (version) {
+		console.log(version);
+	});
+
+}
+
 
 // ----- Run ----- //
 
-navClicks();
+setup();
