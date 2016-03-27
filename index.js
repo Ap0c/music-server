@@ -126,10 +126,10 @@ function checkLibrary (db, res, id) {
 		if (result.length === 0) {
 
 			res.sendStatus(404);
-			return false;
+			return null;
 
 		} else {
-			return true;
+			return result[0].name;
 		}
 
 	});
@@ -137,15 +137,21 @@ function checkLibrary (db, res, id) {
 }
 
 // Renders a list of songs, artists or albums for a specific library.
-function libraryList (db, res, query, id) {
+function libraryList (db, res, type, id) {
 
 	db.connect();
 
-	res.promise(checkLibrary(db, res, id).then((exists) => {
+	let queries = {
+		artists: 'SELECT id, name FROM artists WHERE library = ?',
+		albums: 'SELECT id, name FROM albums WHERE library = ?',
+		songs: 'SELECT id, name FROM songs WHERE library = ?'
+	};
 
-		if (exists) {
+	res.promise(checkLibrary(db, res, id).then((name) => {
 
-			return db.query(query, id).then((list) => {
+		if (name) {
+
+			return db.query(queries[type], id).then((list) => {
 				res.render('app', { list: list });
 			});
 
@@ -165,29 +171,17 @@ app.get('/', (req, res) => {
 
 // Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
-
-	let artistQuery = 'SELECT id, name FROM artists WHERE library = ?';
-
-	libraryList(db, res, artistQuery, req.params.id);
-
+	libraryList(db, res, 'artists', req.params.id);
 });
 
 // Lists the songs in a library.
 app.get('/library/:id/songs', (req, res) => {
-
-	let songQuery = 'SELECT id, name FROM songs WHERE library = ?';
-
-	libraryList(db, res, songQuery, req.params.id);
-
+	libraryList(db, res, 'songs', req.params.id);
 });
 
 // Lists the albums in a library.
 app.get('/library/:id/albums', (req, res) => {
-
-	let albumQuery = 'SELECT id, name FROM albums WHERE library = ?';
-
-	libraryList(db, res, albumQuery, req.params.id);
-
+	libraryList(db, res, 'albums', req.params.id);
 });
 
 // Returns a copy of the full database as JSON.
