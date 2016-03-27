@@ -1,6 +1,6 @@
 if list
 	ul
 		each val in list
-			li
+			li(data-id=val.id)
 				span.list-name= val.name
 				span.plus +

@@ -183,8 +183,8 @@ function listView (db, res, type, id) {
 		artists: 'SELECT id, name FROM artists WHERE library = ?',
 		albums: 'SELECT id, name FROM albums WHERE library = ?',
 		songs: 'SELECT id, name FROM songs WHERE library = ?',
-		artist: 'SELECT name FROM albums WHERE artist = ?',
-		album: 'SELECT name FROM songs WHERE album = ?'
+		artist: 'SELECT id, name FROM albums WHERE artist = ?',
+		album: 'SELECT id, name FROM songs WHERE album = ?'
 	};
 
 	res.promise(getTitle(db, res, type, id).then((title) => {
@@ -192,7 +192,7 @@ function listView (db, res, type, id) {
 		if (title) {
 
 			return db.query(queries[type], id).then((list) => {
-				res.render('app', { title: title, list: list });
+				res.render('app', { title: title, list: list, view: type });
 			});
 
 		}
@@ -210,7 +210,13 @@ app.get('/', (req, res) => {
 	db.connect();
 
 	res.promise(db.query('SELECT id, name FROM libraries').then((libraries) => {
-		res.render('app', { title: 'Music - Libraries', list: libraries });
+
+		res.render('app',
+			{title: 'Music - Libraries',
+			list: libraries,
+			view: 'libraries'
+		});
+
 	}));
 
 });
