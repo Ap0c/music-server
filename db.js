@@ -126,7 +126,14 @@ module.exports = function Db (dbFile) {
 		init: initDb,
 		query: dbQuery,
 		insert: dbInsert,
-		many: dbMany
+		many: dbMany,
+		get open () {
+			if (db) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 	};
 
 };

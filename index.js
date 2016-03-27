@@ -28,9 +28,40 @@ let db = Db(DB_FILE);
 app.use('/static', express.static('static'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(promiseResponse);
+app.use(errHandle);
 
 
 // ----- Functions ----- //
+
+// Promisifies responses.
+function promiseResponse (req, res, next) {
+
+	res.promise = (promise) => {
+
+		promise.then(() => {
+			if (db.open) db.close();
+		}).catch((err) => {
+
+			res.sendStatus(500);
+			if (db.open) db.close();
+			console.log(err);
+
+		});
+
+	};
+
+	next();
+
+}
+
+// Catches unexpected errors.
+function errHandle (err, req, res, next) {
+
+	res.sendStatus(500);
+	console.log(err);
+
+}
 
 // Inserts the library into the database.
 function insertLibrary (db, res, name, libraryPath) {
@@ -40,10 +71,7 @@ function insertLibrary (db, res, name, libraryPath) {
 	return db.insert(query, [name, libraryPath]).then((id) => {
 		createSymlink(libraryPath, id);
 	}).then(() => {
-
 		res.sendStatus(201);
-		db.close();
-
 	});
 
 }
@@ -76,18 +104,13 @@ function addLibrary (res, name, libraryPath) {
 
 	let query = 'SELECT * FROM libraries WHERE path = ?';
 
-	db.query(query, libraryPath).then((result) => {
+	return db.query(query, libraryPath).then((result) => {
 
 		if (result.length === 0) {
 			return insertLibrary(db, res, name, libraryPath);
 		} else {
 			res.sendStatus(409);
 		}
-
-	}).catch((err) => {
-
-		res.sendStatus(500);
-		db.close();
 
 	});
 
@@ -121,11 +144,12 @@ app.get('/', (req, res) => {
 	res.render('app');
 });
 
+// Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
 
 	db.connect();
 
-	checkLibrary(db, res, req.params.id).then((exists) => {
+	res.promise(checkLibrary(db, res, req.params.id).then((exists) => {
 
 		if (exists) {
 
@@ -137,23 +161,16 @@ app.get('/library/:id', (req, res) => {
 
 		}
 
-	}).then(() => {
-		db.close();
-	}).catch((err) => {
-
-		res.sendStatus(500);
-		db.close();
-		console.log(err);
-
-	});
+	}));
 
 });
 
+// Lists the artists in a library.
 app.get('/library/:id/songs', (req, res) => {
 
 	db.connect();
 
-	checkLibrary(db, res, req.params.id).then((exists) => {
+	res.promise(checkLibrary(db, res, req.params.id).then((exists) => {
 
 		if (exists) {
 
@@ -165,15 +182,7 @@ app.get('/library/:id/songs', (req, res) => {
 
 		}
 
-	}).then(() => {
-		db.close();
-	}).catch((err) => {
-
-		res.sendStatus(500);
-		db.close();
-		console.log(err);
-
-	});
+	}));
 
 });
 
@@ -188,17 +197,9 @@ app.get('/db', (req, res) => {
 		db.query('SELECT * FROM albums')
 	];
 
-	Promise.all(queries).then((results) => {
-
+	res.promise(Promise.all(queries).then((results) => {
 		res.send({songs: results[0], artists: results[1], albums: results[2]});
-		db.close();
-
-	}).catch((err) => {
-
-		res.sendStatus(500);
-		db.close();
-
-	});
+	}));
 
 });
 
@@ -208,7 +209,9 @@ app.get('/db/:songId', (req, res) => {
 	let id = req.params.songId;
 	db.connect();
 
-	db.query('SELECT * FROM songs WHERE id = ?', id).then((info) => {
+	let query = 'SELECT * FROM songs WHERE id = ?';
+
+	res.promise(db.query(query, id).then((info) => {
 
 		if (info[0]) {
 			res.send(info[0]);
@@ -216,14 +219,7 @@ app.get('/db/:songId', (req, res) => {
 			res.sendStatus(404);
 		}
 
-		db.close();
-
-	}).catch((err) => {
-
-		res.sendStatus(500);
-		db.close();
-
-	});
+	}));
 
 });
 
@@ -236,7 +232,7 @@ app.post('/add_library', (req, res) => {
 	fs.stat(libraryPath, (err, stats) => {
 
 		if (!err && stats.isDirectory()) {
-			addLibrary(res, name, libraryPath);
+			res.promise(addLibrary(res, name, libraryPath));
 		} else {
 			res.status(400).send('No such path on the file system.');
 		}
