@@ -20,3 +20,25 @@ html, body {
 	width: 100vw;
 	background-color: lightblue;
 }
+
+
+/* ----- Navigation ----- */
+
+#navigation li {
+	display: flex;
+	border-bottom: 1px solid coral;
+}
+
+#navigation li, ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+#navigation span {
+	flex-grow: 1;
+}
+
+#navigation span, a {
+	padding: 0.5em;
+}

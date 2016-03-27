@@ -11,8 +11,6 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 		main
 			section#location-bar= title
 			section#navigation
-				if list
-					each val in list
-						li= val.name
+				include list.pug
 
 			section#player-bar Player Bar
