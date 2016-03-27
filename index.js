@@ -136,6 +136,25 @@ function checkLibrary (db, res, id) {
 
 }
 
+// Renders a list of songs, artists or albums for a specific library.
+function libraryList (db, res, query, id) {
+
+	db.connect();
+
+	res.promise(checkLibrary(db, res, id).then((exists) => {
+
+		if (exists) {
+
+			return db.query(query, id).then((list) => {
+				res.render('app', { list: list });
+			});
+
+		}
+
+	}));
+
+}
+
 
 // ----- Routes ----- //
 
@@ -147,42 +166,27 @@ app.get('/', (req, res) => {
 // Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
 
-	db.connect();
+	let artistQuery = 'SELECT id, name FROM artists WHERE library = ?';
 
-	res.promise(checkLibrary(db, res, req.params.id).then((exists) => {
-
-		if (exists) {
-
-			let artistQuery = 'SELECT id, name FROM artists WHERE library = ?';
-
-			return db.query(artistQuery, req.params.id).then((artists) => {
-				res.render('app', { list: artists });
-			});
-
-		}
-
-	}));
+	libraryList(db, res, artistQuery, req.params.id);
 
 });
 
-// Lists the artists in a library.
+// Lists the songs in a library.
 app.get('/library/:id/songs', (req, res) => {
 
-	db.connect();
+	let songQuery = 'SELECT id, name FROM songs WHERE library = ?';
 
-	res.promise(checkLibrary(db, res, req.params.id).then((exists) => {
+	libraryList(db, res, songQuery, req.params.id);
 
-		if (exists) {
+});
 
-			let songQuery = 'SELECT id, name FROM songs WHERE library = ?';
+// Lists the albums in a library.
+app.get('/library/:id/albums', (req, res) => {
 
-			return db.query(songQuery, req.params.id).then((songs) => {
-				res.render('app', { list: songs });
-			});
+	let albumQuery = 'SELECT id, name FROM albums WHERE library = ?';
 
-		}
-
-	}));
+	libraryList(db, res, albumQuery, req.params.id);
 
 });
 
