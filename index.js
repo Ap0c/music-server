@@ -24,8 +24,9 @@ let MUSIC_DIR = 'static/music';
 let app = express();
 let db = Db(DB_FILE);
 
-// Static files and POSTed forms.
+// Static files, templates and POSTed forms.
 app.use('/static', express.static('static'));
+app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
@@ -97,7 +98,7 @@ function addLibrary (res, name, libraryPath) {
 
 // Returns the main app page.
 app.get('/', (req, res) => {
-	res.sendFile(__dirname + '/app.html');
+	res.render('app');
 });
 
 // Returns a copy of the full database as JSON.
