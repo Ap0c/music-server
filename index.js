@@ -116,12 +116,29 @@ function addLibrary (res, name, libraryPath) {
 
 }
 
-// Checks if a given library exists.
-function checkLibrary (db, res, id) {
+// Gets the type for a name retrieval query.
+function nameType (type) {
 
-	let libQuery = 'SELECT name FROM libraries WHERE id = ?';
+	if (['artists', 'albums', 'songs'].indexOf(type) > -1) {
+		return 'library';
+	} else {
+		return type;
+	}
 
-	return db.query(libQuery, id).then((result) => {
+}
+
+// Retrieves the name of a given library, album or artist.
+function getName (db, res, type, id) {
+
+	let queryType = nameType(type);
+
+	let queries = {
+		library: 'SELECT name FROM libraries WHERE id = ?',
+		artist: 'SELECT name FROM artists WHERE id = ?',
+		album: 'SELECT name FROM albums WHERE id = ?'
+	};
+
+	return db.query(queries[queryType], id).then((result) => {
 
 		if (result.length === 0) {
 
@@ -136,28 +153,43 @@ function checkLibrary (db, res, id) {
 
 }
 
-// Renders a list of songs, artists or albums for a specific library.
-function libraryList (db, res, type, id) {
+// Gets the view title, or returns null if the view does not exist.
+function getTitle (db, res, type, id) {
+
+	let libraryTitles = {
+		artists: 'Artists',
+		albums: 'Albums',
+		songs: 'Songs'
+	};
+
+	return getName(db, res, type, id).then((name) => {
+
+		if (!name || ['artists', 'albums', 'songs'].indexOf(type) === -1) {
+			return name;
+		} else {
+			return `${name} - ${libraryTitles[type]}`;
+		}
+
+	});
+
+}
+
+// Retrieves a list and renders the view.
+function listView (db, res, type, id) {
 
 	db.connect();
 
 	let queries = {
 		artists: 'SELECT id, name FROM artists WHERE library = ?',
 		albums: 'SELECT id, name FROM albums WHERE library = ?',
-		songs: 'SELECT id, name FROM songs WHERE library = ?'
+		songs: 'SELECT id, name FROM songs WHERE library = ?',
+		artist: 'SELECT name FROM albums WHERE artist = ?',
+		album: 'SELECT name FROM songs WHERE album = ?'
 	};
 
-	let titles = {
-		artists: 'Artists',
-		albums: 'Albums',
-		songs: 'Songs'
-	};
+	res.promise(getTitle(db, res, type, id).then((title) => {
 
-	res.promise(checkLibrary(db, res, id).then((name) => {
-
-		if (name) {
-
-			let title = `${name} - ${titles[type]}`;
+		if (title) {
 
 			return db.query(queries[type], id).then((list) => {
 				res.render('app', { title: title, list: list });
@@ -179,71 +211,25 @@ app.get('/', (req, res) => {
 
 // Lists the artists in a library.
 app.get('/library/:id', (req, res) => {
-	libraryList(db, res, 'artists', req.params.id);
+	listView(db, res, 'artists', req.params.id);
 });
 
 // Lists the songs in a library.
 app.get('/library/:id/songs', (req, res) => {
-	libraryList(db, res, 'songs', req.params.id);
+	listView(db, res, 'songs', req.params.id);
 });
 
 // Lists the albums in a library.
 app.get('/library/:id/albums', (req, res) => {
-	libraryList(db, res, 'albums', req.params.id);
+	listView(db, res, 'albums', req.params.id);
 });
 
 app.get('/artist/:id', (req, res) => {
-
-	let query = 'SELECT name FROM artists WHERE id = ?';
-
-	db.connect();
-
-	db.query(query, req.params.id).then((result) => {
-
-		if (result.length === 0) {
-			res.sendStatus(404);
-		} else {
-
-			let albumQuery = 'SELECT id, name FROM albums WHERE artist = ?';
-
-			db.query(albumQuery, req.params.id).then((albums) => {
-
-				let title = result[0].name;
-				res.render('app', { title: title, list: albums });
-
-			});
-
-		}
-
-	});
-
+	listView(db, res, 'artist', req.params.id);
 });
 
 app.get('/album/:id', (req, res) => {
-
-	let query = 'SELECT name FROM albums WHERE id = ?';
-
-	db.connect();
-
-	db.query(query, req.params.id).then((result) => {
-
-		if (result.length === 0) {
-			res.sendStatus(404);
-		} else {
-
-			let songQuery = 'SELECT id, name FROM songs WHERE album = ?';
-
-			db.query(songQuery, req.params.id).then((albums) => {
-
-				let title = result[0].name;
-				res.render('app', { title: title, list: albums });
-
-			});
-
-		}
-
-	});
-
+	listView(db, res, 'album', req.params.id);
 });
 
 // Returns a copy of the full database as JSON.
