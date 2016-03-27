@@ -8,5 +8,9 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 	body
 		main
 			section#location-bar Location Bar
-			section#navigation Navigation
+			section#navigation
+				if list
+					each val in list
+						li= val.name
+
 			section#player-bar Player Bar

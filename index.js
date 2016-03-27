@@ -93,12 +93,88 @@ function addLibrary (res, name, libraryPath) {
 
 }
 
+// Checks if a given library exists.
+function checkLibrary (db, res, id) {
+
+	let libQuery = 'SELECT name FROM libraries WHERE id = ?';
+
+	return db.query(libQuery, id).then((result) => {
+
+		if (result.length === 0) {
+
+			res.sendStatus(404);
+			return false;
+
+		} else {
+			return true;
+		}
+
+	});
+
+}
+
 
 // ----- Routes ----- //
 
 // Returns the main app page.
 app.get('/', (req, res) => {
 	res.render('app');
+});
+
+app.get('/library/:id', (req, res) => {
+
+	db.connect();
+
+	checkLibrary(db, res, req.params.id).then((exists) => {
+
+		if (exists) {
+
+			let artistQuery = 'SELECT id, name FROM artists WHERE library = ?';
+
+			return db.query(artistQuery, req.params.id).then((artists) => {
+				res.render('app', { list: artists });
+			});
+
+		}
+
+	}).then(() => {
+		db.close();
+	}).catch((err) => {
+
+		res.sendStatus(500);
+		db.close();
+		console.log(err);
+
+	});
+
+});
+
+app.get('/library/:id/songs', (req, res) => {
+
+	db.connect();
+
+	checkLibrary(db, res, req.params.id).then((exists) => {
+
+		if (exists) {
+
+			let songQuery = 'SELECT id, name FROM songs WHERE library = ?';
+
+			return db.query(songQuery, req.params.id).then((songs) => {
+				res.render('app', { list: songs });
+			});
+
+		}
+
+	}).then(() => {
+		db.close();
+	}).catch((err) => {
+
+		res.sendStatus(500);
+		db.close();
+		console.log(err);
+
+	});
+
 });
 
 // Returns a copy of the full database as JSON.
