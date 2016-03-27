@@ -202,29 +202,66 @@ function oldLibrary (db, id) {
 
 }
 
+// Adds a song to the database.
+function syncSong (db, song, oldItems, libraryId, artistId, albumId) {
+
+	let id = oldItems.songs[song.path];
+
+	if (id) {
+
+		delete oldItems.songs[song.path];
+		return Promise.resolve(id);
+
+	} else {
+
+		let query = `INSERT INTO songs
+			(name, number, artist, album, path, library)
+			VALUES (?, ?, ?, ?, ?, ?)`;
+		let params = [song.name, song.number, artistId, albumId, song.path,
+			libraryId];
+
+		return db.insert(query, params);
+
+	}
+
+}
+
 // Adds an album's songs to the database.
 function syncSongs (db, songs, oldItems, libraryId, artistId, albumId) {
 
+	let additions = [];
+
 	for (let song of songs) {
 
-		let id = oldItems.songs[song.path];
+		additions.push(syncSong(db, song, oldItems, libraryId, artistId,
+			albumId));
 
-		if (id) {
+	}
 
-			delete oldItems.songs[song.path];
-			return Promise.resolve(id);
+	return Promise.all(additions);
 
-		} else {
+}
 
-			let query = `INSERT INTO songs
-				(name, number, artist, album, path, library)
-				VALUES (?, ?, ?, ?, ?, ?)`;
-			let params = [song.name, song.number, artistId, albumId, song.path,
-				libraryId];
+// Adds an album to the database.
+function syncAlbum (db, album, oldItems, libraryId, artistId) {
 
-			return db.insert(query, params);
+	let id = oldItems.albums[album.dirname];
 
-		}
+	if (id) {
+
+		delete oldItems.albums[album.dirname];
+		return syncSongs(db, album.songs, oldItems, libraryId, artistId, id);
+
+	} else {
+
+		let query = `INSERT INTO albums (name, artist, dirname, library)
+			VALUES (?, ?, ?, ?)`;
+		let params = [album.name, artistId, album.dirname, libraryId];
+
+		return db.insert(query, params).then((rowId) => {
+			return syncSongs(db, album.songs, oldItems, libraryId, artistId,
+				rowId);
+		});
 
 	}
 
@@ -233,29 +270,13 @@ function syncSongs (db, songs, oldItems, libraryId, artistId, albumId) {
 // Adds an artist's albums to the database.
 function syncAlbums (db, albums, oldItems, libraryId, artistId) {
 
+	let additions = [];
+
 	for (let album of albums) {
-
-		let id = oldItems.albums[album.dirname];
-
-		if (id) {
-
-			delete oldItems.albums[album.dirname];
-			return syncSongs(db, album.songs, oldItems, libraryId, artistId, id);
-
-		} else {
-
-			let query = `INSERT INTO albums (name, artist, dirname, library)
-				VALUES (?, ?, ?, ?)`;
-			let params = [album.name, artistId, album.dirname, libraryId];
-
-			return db.insert(query, params).then((rowId) => {
-				return syncSongs(db, album.songs, oldItems, libraryId,
-					artistId, rowId);
-			});
-
-		}
-
+		additions.push(syncAlbum(db, album, oldItems, libraryId, artistId));
 	}
+
+	return Promise.all(additions);
 
 }
 
