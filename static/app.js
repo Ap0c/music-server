@@ -221,7 +221,48 @@ var Db = (function Database () {
 
 });
 
-var views = (function Views () {
+var Views = (function Views (db) {
+
+	// ----- Properties ----- //
+
+	var nav = document.getElementById('navigation');
+
+	// ----- Functions ----- //
+
+	function renderList (getData, selector, url) {
+
+		getData(selector).then(function (data) {
+
+			var list = listTemplate({ list: data, url: url });
+			navigation.innerHTML = list;
+
+		});
+
+	}
+
+	// ----- Routes ----- //
+
+	page('/', function () {
+
+		renderList(db.getLibraries, null, function (id) {
+			return `/library/${id}`;
+		});
+
+	});
+
+	page('/library/:id', function (ctx) {
+
+		var id = parseInt(ctx.params.id);
+
+		renderList(db.getArtists, id, function (id) {
+			return `/artist/${id}`;
+		});
+
+	});
+
+	// ----- Constructor ----- //
+
+	page();
 
 });
 
@@ -253,7 +294,7 @@ function setup () {
 
 	navClicks();
 	Db().then(function (db) {
-		console.log('DB synced.');
+		var views = Views(db);
 	}).catch(function (err) {
 		console.log(err);
 	});
