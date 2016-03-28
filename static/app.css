@@ -22,7 +22,21 @@ html, body {
 }
 
 
+/* ----- Location Bar ----- */
+
+#location-bar {
+	display: flex;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+}
+
+
 /* ----- Navigation ----- */
+
+#navigation {
+	overflow-y: scroll;
+}
 
 #navigation li {
 	display: flex;
