@@ -179,6 +179,18 @@ var Db = (function Database () {
 
 	}
 
+	// Retrieves a name by id from a given table.
+	function getName (tableName, id) {
+
+		var table = db.getSchema().table(tableName);
+
+		return db.select(table.name).from(table).where(table.id.eq(id)).exec()
+			.then(function (name) {
+				return name[0].name;
+			});
+
+	}
+
 	// ----- Methods ----- //
 
 	// Retrieves all songs in a library.
@@ -211,6 +223,21 @@ var Db = (function Database () {
 		return listQuery('Libraries');
 	};
 
+	// Retrieves the name of a library.
+	exports.libraryName = function (id) {
+		return getName('Libraries', id);
+	};
+
+	// Retrieves the name of an artist.
+	exports.artistName = function (id) {
+		return getName('Artists', id);
+	};
+
+	// Retrieves the name of an album.
+	exports.albumName = function (id) {
+		return getName('Albums', id);
+	};
+
 	// ----- Constructor ----- //
 
 	var schema = build();
@@ -226,6 +253,7 @@ var Views = (function Views (db) {
 	// ----- Properties ----- //
 
 	var nav = document.getElementById('navigation');
+	var locationBar = document.getElementById('location-bar');
 
 	// ----- Functions ----- //
 
@@ -236,8 +264,14 @@ var Views = (function Views (db) {
 			var list = listTemplate({ list: data, url: url });
 			navigation.innerHTML = list;
 
+		}).catch(function (err) {
+			console.log(err);
 		});
 
+	}
+
+	function setTitle (title) {
+		locationBar.textContent = title;
 	}
 
 	// ----- Routes ----- //
@@ -247,6 +281,8 @@ var Views = (function Views (db) {
 		renderList(db.getLibraries, null, function (id) {
 			return `/library/${id}`;
 		});
+
+		setTitle('Music - Libraries');
 
 	});
 
@@ -258,12 +294,20 @@ var Views = (function Views (db) {
 			return `/artist/${id}`;
 		});
 
+		db.libraryName(id).then(function (name) {
+			setTitle(`${name} - Artists`);
+		});
+
 	});
 
 	page('/library/:id/songs', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
 		renderList(db.getSongs, id);
+
+		db.libraryName(id).then(function (name) {
+			setTitle(`${name} - Songs`);
+		});
 
 	});
 
@@ -273,6 +317,10 @@ var Views = (function Views (db) {
 
 		renderList(db.getAlbums, id, function (id) {
 			return `/album/${id}`;
+		});
+
+		db.libraryName(id).then(function (name) {
+			setTitle(`${name} - Albums`);
 		});
 
 	});
@@ -285,12 +333,16 @@ var Views = (function Views (db) {
 			return `/album/${id}`;
 		});
 
+		db.artistName(id).then(setTitle);
+
 	});
 
 	page('/album/:id', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
 		renderList(db.getAlbum, id);
+
+		db.albumName(id).then(setTitle);
 
 	});
 
