@@ -260,6 +260,40 @@ var Views = (function Views (db) {
 
 	});
 
+	page('/library/:id/songs', function (ctx) {
+
+		var id = parseInt(ctx.params.id);
+		renderList(db.getSongs, id);
+
+	});
+
+	page('/library/:id/albums', function (ctx) {
+
+		var id = parseInt(ctx.params.id);
+
+		renderList(db.getAlbums, id, function (id) {
+			return `/album/${id}`;
+		});
+
+	});
+
+	page('/artist/:id', function (ctx) {
+
+		var id = parseInt(ctx.params.id);
+
+		renderList(db.getArtist, id, function (id) {
+			return `/album/${id}`;
+		});
+
+	});
+
+	page('/album/:id', function (ctx) {
+
+		var id = parseInt(ctx.params.id);
+		renderList(db.getAlbum, id);
+
+	});
+
 	// ----- Constructor ----- //
 
 	page();
