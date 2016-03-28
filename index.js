@@ -6,6 +6,7 @@ let fs = require('fs');
 let path = require('path');
 let express = require('express');
 let bodyParser = require('body-parser');
+let pug = require('pug');
 
 let Db = require('./db');
 let scan = require('./scan');
@@ -25,7 +26,7 @@ const MUSIC_DIR = 'static/music';
 let app = express();
 let db = Db(DB_FILE);
 
-// Static files, templates and POSTed forms.
+// Middleware.
 app.use('/static', express.static('static'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -260,8 +261,18 @@ db.init(DB_SCHEMA).then(() => {
 
 	db.close();
 
-	app.listen(3000, () => {
-		console.log('Running on 3000...');
+	let template = pug.compileFileClient('views/list.pug', {name: 'listTemplate'});
+
+	fs.writeFile('static/template.js', template, (err) => {
+
+		if (err) {
+			throw new Error(err);
+		}
+
+		app.listen(3000, () => {
+			console.log('Running on 3000...');
+		});
+
 	});
 
 }).catch((err) => {
