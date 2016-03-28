@@ -187,11 +187,17 @@ app.get('/db', (req, res) => {
 	let queries = [
 		db.query('SELECT * FROM songs'),
 		db.query('SELECT * FROM artists'),
-		db.query('SELECT * FROM albums')
+		db.query('SELECT * FROM albums'),
+		db.query('SELECT * FROM libraries')
 	];
 
 	res.promise(Promise.all(queries).then((results) => {
-		res.send({songs: results[0], artists: results[1], albums: results[2]});
+		res.send({
+			songs: results[0],
+			artists: results[1],
+			albums: results[2],
+			libraries: results[3]
+		});
 	}));
 
 });

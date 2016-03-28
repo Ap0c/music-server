@@ -10,6 +10,7 @@ var Db = (function Database () {
 	// ----- Properties ----- //
 
 	var db = null;
+	var exports = {};
 
 
 	// ----- Functions ----- //
@@ -43,6 +44,11 @@ var Db = (function Database () {
 			.addPrimaryKey(['id'])
 			.addNullable(['number']);
 
+		schemaBuilder.createTable('Libraries')
+			.addColumn('id', lf.Type.INTEGER)
+			.addColumn('name', lf.Type.STRING)
+			.addPrimaryKey(['id']);
+
 		schemaBuilder.createTable('DataVersion')
 			.addColumn('id', lf.Type.INTEGER)
 			.addColumn('version', lf.Type.INTEGER)
@@ -67,6 +73,7 @@ var Db = (function Database () {
 		var artists = db.getSchema().table('Artists');
 		var albums = db.getSchema().table('Albums');
 		var songs = db.getSchema().table('Songs');
+		var libraries = db.getSchema().table('Libraries');
 
 		var data = null;
 
@@ -74,6 +81,8 @@ var Db = (function Database () {
 			return db.delete().from(albums).exec();
 		}).then(function () {
 			return db.delete().from(songs).exec();
+		}).then(function () {
+			return db.delete().from(libraries).exec();
 		}).then(function () {
 			return fetch('http://localhost:3000/db');
 		}).then(function (res) {
@@ -103,6 +112,14 @@ var Db = (function Database () {
 			});
 
 			return db.insert().into(songs).values(rows).exec();
+
+		}).then(function () {
+
+			var rows = data.libraries.map(function (library) {
+				return libraries.createRow(library);
+			});
+
+			return db.insert().into(libraries).values(rows).exec();
 
 		});
 
@@ -144,13 +161,63 @@ var Db = (function Database () {
 
 		});
 
-	}	
+	}
+
+	// Gets all items from a table for a specific selector.
+	function listQuery (tableName, selector, selectValue) {
+
+		var table = db.getSchema().table(tableName);
+
+		if (selector) {
+
+			return db.select(table.id, table.name).from(table)
+				.where(table[selector].eq(selectValue)).exec();
+
+		} else {
+			return db.select(table.id, table.name).from(table).exec();
+		}
+
+	}
+
+	// ----- Methods ----- //
+
+	// Retrieves all songs in a library.
+	exports.getSongs = function (library) {
+		return listQuery('Songs', 'library', library);
+	};
+
+	// Retrieves all artists in a library.
+	exports.getArtists = function (library) {
+		return listQuery('Artists', 'library', library);
+	};
+
+	// Retrieves all albums in a library.
+	exports.getAlbums = function (library) {
+		return listQuery('Albums', 'library', library);
+	};
+
+	// Retrieves all albums for an artist.
+	exports.getArtist = function (artist) {
+		return listQuery('Albums', 'artist', artist);
+	};
+
+	// Retrieves all songs for an album.
+	exports.getAlbum = function (album) {
+		return listQuery('Songs', 'album', album);
+	};
+
+	// Retrieves all songs for an album.
+	exports.getLibraries = function () {
+		return listQuery('Libraries');
+	};
 
 	// ----- Constructor ----- //
 
 	var schema = build();
 
-	return connect(schema).then(syncData);
+	return connect(schema).then(syncData).then(function () {
+		return exports;
+	});
 
 });
 
@@ -185,7 +252,7 @@ function navClicks () {
 function setup () {
 
 	navClicks();
-	Db().then(function () {
+	Db().then(function (db) {
 		console.log('DB synced.');
 	}).catch(function (err) {
 		console.log(err);
