@@ -257,6 +257,7 @@ var Views = (function Views (db) {
 
 	// ----- Functions ----- //
 
+	// Renders the navigation section with a list of items.
 	function renderList (getData, selector, url) {
 
 		getData(selector).then(function (data) {
@@ -270,12 +271,17 @@ var Views = (function Views (db) {
 
 	}
 
+	// Sets the location bar and page title.
 	function setTitle (title) {
+
+		document.title = `Music - ${title}`;
 		locationBar.textContent = title;
+
 	}
 
 	// ----- Routes ----- //
 
+	// Displays libraries.
 	page('/', function () {
 
 		renderList(db.getLibraries, null, function (id) {
@@ -286,6 +292,7 @@ var Views = (function Views (db) {
 
 	});
 
+	// Displays a library (list of artists).
 	page('/library/:id', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
@@ -300,6 +307,7 @@ var Views = (function Views (db) {
 
 	});
 
+	// Displays a library (list of songs).
 	page('/library/:id/songs', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
@@ -311,6 +319,7 @@ var Views = (function Views (db) {
 
 	});
 
+	// Displays a library (list of albums).
 	page('/library/:id/albums', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
@@ -325,6 +334,7 @@ var Views = (function Views (db) {
 
 	});
 
+	// Displays an artist (list of albums).
 	page('/artist/:id', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
@@ -337,6 +347,7 @@ var Views = (function Views (db) {
 
 	});
 
+	// Displays an album (list of songs).
 	page('/album/:id', function (ctx) {
 
 		var id = parseInt(ctx.params.id);
