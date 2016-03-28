@@ -44,7 +44,7 @@ var Db = (function Database () {
 			.addNullable(['number']);
 
 		schemaBuilder.createTable('DataVersion')
-			.addColumn('id')
+			.addColumn('id', lf.Type.INTEGER)
 			.addColumn('version', lf.Type.INTEGER)
 			.addPrimaryKey(['id']);
 
@@ -63,8 +63,6 @@ var Db = (function Database () {
 
 	// Refreshes the dataset from the server.
 	function retrieveData () {
-
-		console.log('Retrieving data');
 
 		var artists = db.getSchema().table('Artists');
 		var albums = db.getSchema().table('Albums');
@@ -115,7 +113,6 @@ var Db = (function Database () {
 
 		return retrieveData().then(function () {
 
-			console.log('here');
 			var row = table.createRow({ id: 1, version: version });
 
 			return db.insertOrReplace().into(table).values([row]).exec();
@@ -142,7 +139,6 @@ var Db = (function Database () {
 		}).then(function (rows) {
 
 			if (rows.length === 0 || rows[0].version < dataVersion) {
-				console.log(rows);
 				return updateVersion(dataVersion, versionTable);
 			}
 
