@@ -1,3 +1,5 @@
+- var menuClass = (view === 'libraries') ? 'display-off' : '';
+
 doctype html
 html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 
@@ -9,7 +11,13 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 
 	body
 		main
-			section#location-bar= title
+			section#location-bar
+				span#location-title= title
+				svg(id="menu-icon" class=menuClass xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50")
+					<rect x=10 y="10" width="30" height="4" />
+					<rect x="10" y="23" width="30" height="4" />
+					<rect x="10" y="36" width="30" height="4" />
+
 			section#navigation(data-view=view)
 				include list.pug
 

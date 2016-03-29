@@ -6,6 +6,14 @@ html, body {
 	font-family: sans-serif;
 }
 
+.display-off {
+	display: none;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
 
 /* ----- Main View ----- */
 
@@ -29,6 +37,10 @@ html, body {
 	text-align: center;
 	justify-content: center;
 	align-items: center;
+}
+
+#location-title {
+	flex-grow: 1;
 }
 
 
@@ -79,17 +91,9 @@ svg {
 	cursor: pointer;
 }
 
-.hidden {
-	visibility: hidden;
-}
-
 .song-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.display-off {
-	display: none;
 }
 
 #player-bar-name {

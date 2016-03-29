@@ -306,7 +306,8 @@ var Views = (function Views (db) {
 
 	// DOM Elements.
 	var nav = document.getElementById('navigation');
-	var locationBar = document.getElementById('location-bar');
+	var locationTitle = document.getElementById('location-title');
+	var menuIcon = document.getElementById('menu-icon');
 	var playIcons = document.getElementsByClassName('play-icon');
 	var pauseIcons = document.getElementsByClassName('pause-icon');
 	var songNames = document.getElementsByClassName('song-name');
@@ -331,11 +332,17 @@ var Views = (function Views (db) {
 
 	}
 
-	// Sets the location bar and page title.
-	function setTitle (title) {
+	// Sets the location bar and page title, and displays the menu.
+	function setTitle (title, noMenu) {
 
 		document.title = `Music - ${title}`;
-		locationBar.textContent = title;
+		locationTitle.textContent = title;
+
+		if (noMenu) {
+			menuIcon.classList.add('display-off');
+		} else {
+			menuIcon.classList.remove('display-off');
+		}
 
 	}
 
@@ -348,7 +355,7 @@ var Views = (function Views (db) {
 			return `/library/${id}`;
 		});
 
-		setTitle('Music - Libraries');
+		setTitle('Music - Libraries', true);
 		view = { name: 'libraries', id: null };
 
 	});
@@ -356,6 +363,7 @@ var Views = (function Views (db) {
 	// Displays a library (list of artists).
 	page('/library/:id', function (ctx) {
 
+		console.log('here');
 		var id = parseInt(ctx.params.id);
 
 		renderList(db.getArtists, id, function (id) {
