@@ -62,3 +62,27 @@ html, body {
 	text-decoration: none;
 	color: inherit;
 }
+
+
+/* ----- Player Bar ----- */
+
+#player-bar {
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
+}
+
+svg {
+	display: none;
+	height: 100%;
+	flex-shrink: 0;
+}
+
+#play-icon {
+	display: block;
+}
+
+#song-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

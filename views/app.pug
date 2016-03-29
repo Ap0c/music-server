@@ -13,7 +13,15 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 			section#navigation(data-view=view)
 				include list.pug
 
-			section#player-bar Player Bar
+			section#player-bar
+				<svg id="play-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50">
+					<polygon points="10,10 40,25 10,40" />
+				</svg>
+				<svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50">
+					<rect x="9" y="10" width="12" height="30" />
+					<rect x="29" y="10" width="12" height="30" />
+				</svg>
+				span#song-name Currently Playing Song With A Ridiculously Long Name That Goes Past Two Lines And Just Keeps On Adding Words
 			script(type='text/javascript', src='/static/fetch.js')
 			script(type='text/javascript', src='/static/lovefield.min.js')
 			script(type='text/javascript', src='/static/page.js')
