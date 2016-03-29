@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "setup": "cp node_modules/lovefield/dist/lovefield.min.js static && cp node_modules/whatwg-fetch/fetch.js static && cp node_modules/page/page.js static"
+    "setup": "cp node_modules/lovefield/dist/lovefield.min.js node_modules/whatwg-fetch/fetch.js node_modules/page/page.js static"
   },
   "author": "Ap0c",
   "license": "ISC",

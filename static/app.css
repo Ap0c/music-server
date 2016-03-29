@@ -76,6 +76,7 @@ svg {
 	display: none;
 	height: 100%;
 	flex-shrink: 0;
+	cursor: pointer;
 }
 
 .hidden {
@@ -89,4 +90,20 @@ svg {
 
 .active-icon {
 	display: block;
+}
+
+
+/* ----- Player Overlay ----- */
+
+#player-overlay {
+	position: absolute;
+	background-color: white;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+}
+
+.hidden-overlay {
+	display: none;
 }

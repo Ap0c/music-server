@@ -1,6 +1,7 @@
 // ----- Setup ----- //
 
 var myPlayer = null;
+var myViews = null;
 
 
 // ----- Modules ----- //
@@ -300,13 +301,16 @@ var Views = (function Views (db) {
 
 	// ----- Properties ----- //
 
-	var nav = document.getElementById('navigation');
-	var locationBar = document.getElementById('location-bar');
 	var view = navigation.dataset.view;
 	var exports = {};
+
+	// DOM Elements.
+	var nav = document.getElementById('navigation');
+	var locationBar = document.getElementById('location-bar');
 	var playIcon = document.getElementById('play-icon');
 	var pauseIcon = document.getElementById('pause-icon');
 	var playingSong = document.getElementById('song-name');
+	var playerOverlay = document.getElementById('player-overlay');
 
 	// ----- Functions ----- //
 
@@ -452,6 +456,16 @@ var Views = (function Views (db) {
 	// Updates the currently playing song.
 	exports.playingSong = function (name) {
 		playingSong.textContent = name;
+	};
+
+	// Shows the player overlay.
+	exports.showPlayer = function () {
+		playerOverlay.classList.remove('hidden-overlay');
+	};
+
+	// Hides the player overlay.
+	exports.hidePlayer = function () {
+		playerOverlay.classList.add('hidden-overlay');
 	};
 
 	// ----- Constructor ----- //
@@ -663,6 +677,7 @@ function setup () {
 		var views = Views(db);
 		var player = Player(db, views);
 		myPlayer = player;
+		myViews = views;
 
 		var controls = Controls(db, views, player);
 		views.ready();
