@@ -519,59 +519,61 @@ var Player = (function Player (db, views) {
 
 });
 
+var Controls = (function Controls (db, views, player) {
 
-// ----- Functions ----- //
+	// ----- Properties ----- //
 
-// Queues songs retrieved from the passed getSongs function.
-function queueSongs (player, songs) {
+	var nav = document.getElementById('navigation');
 
-	var ids = songs.map(function (song) {
-		return song.id;
-	});
+	// ----- Functions ----- //
 
-	player.queue(ids);
-	player.next();
-	player.play();
+	// Queues songs retrieved from the passed getSongs function.
+	function queueSongs (songs) {
 
-}
-
-// Queues songs in an album.
-function queueAlbum (db, player, albumId, songId) {
-
-	db.getAlbum(albumId).then(function (songs) {
-
-		var firstSong = songs.findIndex(function (song) {
-			return song.id === songId;
+		var ids = songs.map(function (song) {
+			return song.id;
 		});
 
-		queueSongs(player, songs.slice(firstSong));
+		player.queue(ids);
+		player.next();
+		player.play();
 
-	});
+	}
 
-}
+	// Queues songs in an album.
+	function queueAlbum (albumId, songId) {
 
-// Plays all songs in the current view.
-function playSongs (db, player, views, id) {
+		db.getAlbum(albumId).then(function (songs) {
 
-	var currentView = views.view;
-	player.clear();
+			var firstSong = songs.findIndex(function (song) {
+				return song.id === songId;
+			});
 
-	if (currentView.name === 'album') {
-		queueAlbum(db, player, currentView.id, id);
-	} else if (currentView.name === 'songs') {
+			queueSongs(songs.slice(firstSong));
 
-		db.songsSlice(currentView.id, id).then(function (songs) {
-			queueSongs(player, songs);
 		});
 
 	}
 
-}
+	// Plays all songs in the current view.
+	function playSongs (id) {
 
-// Sets up navigation via click in the nav section.
-function playbackControl (db, player, views) {
+		var currentView = views.view;
+		player.clear();
 
-	var nav = document.getElementById('navigation');
+		if (currentView.name === 'album') {
+			queueAlbum(currentView.id, id);
+		} else if (currentView.name === 'songs') {
+
+			db.songsSlice(currentView.id, id).then(function (songs) {
+				queueSongs(songs);
+			});
+
+		}
+
+	}
+
+	// ----- Constructor ----- //
 
 	nav.addEventListener('click', function (event) {
 
@@ -579,14 +581,19 @@ function playbackControl (db, player, views) {
 		var id = parseInt(target.parentNode.dataset.id);
 
 		if (target.classList.contains('song')) {
-			playSongs(db, player, views, id);
+			playSongs(id);
 		} else if (target.className === 'plus') {
 			player.queue(id);
 		}
 
 	});
 
-}
+});
+
+
+// ----- Functions ----- //
+
+
 
 // Sets up interface.
 function setup () {
@@ -596,7 +603,7 @@ function setup () {
 		var views = Views(db);
 		var player = Player(db);
 		myPlayer = player;
-		playbackControl(db, player, views);
+		var controls = Controls(db, views, player);
 
 	}).catch(function (err) {
 		console.log(err);
