@@ -380,11 +380,14 @@ var Player = (function Player (db) {
 	// ----- Properties ----- //
 
 	var audio = new Audio();
+	var upNext = [];
+	var previous = [];
 	var exports = {};
 	var musicPath = '/static/music/';
 
 	// ----- Methods ----- //
 
+	// Starts playback of a new song.
 	exports.newSong = function (id) {
 
 		db.getSong(id).then(function (song) {
@@ -393,6 +396,7 @@ var Player = (function Player (db) {
 
 	};
 
+	// Plays the current song.
 	exports.play = function () {
 
 		if (audio.paused) {
@@ -401,10 +405,48 @@ var Player = (function Player (db) {
 
 	};
 
+	// Pauses the current song.
 	exports.pause = function () {
 
 		if (!audio.paused) {
 			audio.pause();
+		}
+
+	};
+
+	// Adds a song to the queue.
+	exports.queue = function (id) {
+		upNext.unshift(id);
+	};
+
+	// Skips to next song.
+	exports.next = function () {
+
+		if (upNext.length > 0) {
+
+			var id = upNext.pop();
+			previous.push(id);
+
+			exports.newSong(id);
+			exports.play();
+
+		}
+
+	};
+
+	// Skips to start of current song, or to previous song.
+	exports.previous = function () {
+
+		if (audio.currentTime > 10) {
+			audio.currentTime = 0;
+		} else if (previous.length > 0) {
+
+			var id = previous.pop();
+			upNext.push(id);
+
+			exports.newSong(id);
+			exports.play();
+
 		}
 
 	};
