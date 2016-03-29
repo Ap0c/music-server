@@ -565,6 +565,8 @@ var Controls = (function Controls (db, views, player) {
 	// ----- Properties ----- //
 
 	var nav = document.getElementById('navigation');
+	var playButton = document.getElementById('play-icon');
+	var pauseButton = document.getElementById('pause-icon');
 
 	// ----- Functions ----- //
 
@@ -644,6 +646,9 @@ var Controls = (function Controls (db, views, player) {
 		}
 
 	});
+
+	playButton.addEventListener('click', player.play);
+	pauseButton.addEventListener('click', player.pause);
 
 });
 
