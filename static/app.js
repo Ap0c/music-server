@@ -222,6 +222,16 @@ var Db = (function Database () {
 
 	};
 
+	// Get all songs by a specific artist.
+	exports.songsArtist = function (artist) {
+
+		var songs = db.getSchema().table('Songs');
+
+		return db.select(songs.id).from(songs).where(songs.artist.eq(artist))
+			.exec();
+
+	};
+
 	// Retrieves all artists in a library.
 	exports.getArtists = function (library) {
 		return listQuery('Artists', {name: 'library', value: library}, 'name');
@@ -430,12 +440,12 @@ var Player = (function Player (db, views) {
 	var exports = {};
 	var musicPath = '/static/music/';
 
-	// ----- Methods ----- //
+	// ----- Functions ----- //
 
 	// Starts playback of a new song.
 	function newSong (id) {
 
-		db.getSong(id).then(function (song) {
+		return db.getSong(id).then(function (song) {
 
 			nowPlaying = song;
 			audio.src = musicPath + song.path;
@@ -444,25 +454,18 @@ var Player = (function Player (db, views) {
 
 	}
 
+	// ----- Methods ----- //
+
 	// Plays the current song.
 	exports.play = function () {
-
-		if (audio.paused) {
-			audio.play();
-		}
-
-		// console.log(nowPlaying.name);
+		audio.play();
+		console.log(nowPlaying);
 		console.log(upNext);
-
 	};
 
 	// Pauses the current song.
 	exports.pause = function () {
-
-		if (!audio.paused) {
-			audio.pause();
-		}
-
+		audio.pause();
 	};
 
 	// Adds songs to the queue.
@@ -480,7 +483,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = upNext.shift();
-			newSong(id);
+			return newSong(id);
 
 		}
 
@@ -498,7 +501,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = previous.pop();
-			exports.newSong(id);
+			return newSong(id);
 
 		}
 
@@ -527,6 +530,11 @@ var Controls = (function Controls (db, views, player) {
 
 	// ----- Functions ----- //
 
+	// Play the next song.
+	function playNext () {
+		player.next().then(player.play);
+	}
+
 	// Queues songs retrieved from the passed getSongs function.
 	function queueSongs (songs) {
 
@@ -535,15 +543,13 @@ var Controls = (function Controls (db, views, player) {
 		});
 
 		player.queue(ids);
-		player.next();
-		player.play();
 
 	}
 
 	// Queues songs in an album.
 	function queueAlbum (albumId, songId) {
 
-		db.getAlbum(albumId).then(function (songs) {
+		return db.getAlbum(albumId).then(function (songs) {
 
 			var firstSong = songs.findIndex(function (song) {
 				return song.id === songId;
@@ -558,17 +564,30 @@ var Controls = (function Controls (db, views, player) {
 	// Plays all songs in the current view.
 	function playSongs (id) {
 
-		var currentView = views.view;
+		var view = views.view;
 		player.clear();
 
-		if (currentView.name === 'album') {
-			queueAlbum(currentView.id, id);
-		} else if (currentView.name === 'songs') {
+		if (view.name === 'album') {
+			return queueAlbum(view.id, id);
+		} else if (view.name === 'songs') {
+			return db.songsSlice(view.id, id).then(queueSongs);
+		}
 
-			db.songsSlice(currentView.id, id).then(function (songs) {
-				queueSongs(songs);
-			});
+	}
 
+	// Queues songs from plus click based on current view.
+	function plusQueue (id) {
+
+		var view = views.view;
+
+		if (view.name === 'album' || view.name === 'songs') {
+			player.queue(id);
+		} else if (view.name === 'artist' || view.name === 'albums') {
+			db.getAlbum(id).then(queueSongs);
+		} else if (view.name === 'artists') {
+			db.songsArtist(id).then(queueSongs);
+		} else if (view.name === 'libraries') {
+			db.getSongs(id).then(queueSongs);
 		}
 
 	}
@@ -581,9 +600,9 @@ var Controls = (function Controls (db, views, player) {
 		var id = parseInt(target.parentNode.dataset.id);
 
 		if (target.classList.contains('song')) {
-			playSongs(id);
+			playSongs(id).then(playNext);
 		} else if (target.className === 'plus') {
-			player.queue(id);
+			plusQueue(id);
 		}
 
 	});
@@ -592,8 +611,6 @@ var Controls = (function Controls (db, views, player) {
 
 
 // ----- Functions ----- //
-
-
 
 // Sets up interface.
 function setup () {
