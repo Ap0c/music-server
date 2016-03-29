@@ -218,6 +218,18 @@ var Db = (function Database () {
 		return listQuery('Songs', 'album', album);
 	};
 
+	// Retrieves song data.
+	exports.getSong = function (id) {
+
+		var songs = db.getSchema().table('Songs');
+
+		return db.select().from(songs).where(songs.id.eq(id)).exec()
+			.then(function (result) {
+				return result[0];
+			});
+
+	};
+
 	// Retrieves all songs for an album.
 	exports.getLibraries = function () {
 		return listQuery('Libraries');
@@ -363,11 +375,51 @@ var Views = (function Views (db) {
 
 });
 
+var Player = (function Player (db) {
+
+	// ----- Properties ----- //
+
+	var audio = new Audio();
+	var exports = {};
+	var musicPath = '/static/music/';
+
+	// ----- Methods ----- //
+
+	exports.newSong = function (id) {
+
+		db.getSong(id).then(function (song) {
+			audio.src = musicPath + song.path;
+		});
+
+	};
+
+	exports.play = function () {
+
+		if (audio.paused) {
+			audio.play();
+		}
+
+	};
+
+	exports.pause = function () {
+
+		if (!audio.paused) {
+			audio.pause();
+		}
+
+	};
+
+	// ----- Constructor ----- //
+
+	return exports;
+
+});
+
 
 // ----- Functions ----- //
 
 // Sets up navigation via click in the nav section.
-function navClicks () {
+function playbackClicks (player) {
 
 	var nav = document.getElementById('navigation');
 
@@ -377,7 +429,10 @@ function navClicks () {
 		var id = target.parentNode.dataset.id;
 
 		if (target.classList.contains('song')) {
-			console.log(`Play song ${id}`);
+
+			player.newSong(parseInt(id));
+			player.play();
+
 		} else if (target.className === 'plus') {
 			console.log(`Queue item ${id}`);
 		}
@@ -389,9 +444,12 @@ function navClicks () {
 // Sets up interface.
 function setup () {
 
-	navClicks();
 	Db().then(function (db) {
+
 		var views = Views(db);
+		var player = Player(db);
+		playbackClicks(player);
+
 	}).catch(function (err) {
 		console.log(err);
 	});
