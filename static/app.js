@@ -345,7 +345,7 @@ var Views = (function Views (db) {
 			setTitle(`${name} - Artists`);
 		});
 
-		view = { name: 'libraryArtists', id: id };
+		view = { name: 'artists', id: id };
 
 	});
 
@@ -359,7 +359,7 @@ var Views = (function Views (db) {
 			setTitle(`${name} - Songs`);
 		});
 
-		view = { name: 'librarySongs', id: id };
+		view = { name: 'songs', id: id };
 
 	});
 
@@ -376,7 +376,7 @@ var Views = (function Views (db) {
 			setTitle(`${name} - Albums`);
 		});
 
-		view = { name: 'libraryAlbums', id: id };
+		view = { name: 'albums', id: id };
 
 	});
 
@@ -548,11 +548,12 @@ function playSongs (db, player, views, id) {
 			var firstSong = songs.findIndex(function (song) {
 				return song.id === id;
 			});
+
 			queueSongs(player, songs.slice(firstSong));
 
 		});
 
-	} else if (currentView.name === 'librarySongs') {
+	} else if (currentView.name === 'songs') {
 
 		db.songsSlice(currentView.id, id).then(function (songs) {
 			queueSongs(player, songs);
