@@ -535,6 +535,21 @@ function queueSongs (player, songs) {
 
 }
 
+// Queues songs in an album.
+function queueAlbum (db, player, albumId, songId) {
+
+	db.getAlbum(albumId).then(function (songs) {
+
+		var firstSong = songs.findIndex(function (song) {
+			return song.id === songId;
+		});
+
+		queueSongs(player, songs.slice(firstSong));
+
+	});
+
+}
+
 // Plays all songs in the current view.
 function playSongs (db, player, views, id) {
 
@@ -542,17 +557,7 @@ function playSongs (db, player, views, id) {
 	player.clear();
 
 	if (currentView.name === 'album') {
-
-		db.getAlbum(currentView.id).then(function (songs) {
-
-			var firstSong = songs.findIndex(function (song) {
-				return song.id === id;
-			});
-
-			queueSongs(player, songs.slice(firstSong));
-
-		});
-
+		queueAlbum(db, player, currentView.id, id);
 	} else if (currentView.name === 'songs') {
 
 		db.songsSlice(currentView.id, id).then(function (songs) {
