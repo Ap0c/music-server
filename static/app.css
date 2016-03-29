@@ -139,3 +139,19 @@ svg {
 	overflow-y: scroll;
 	border: 1px solid #000;
 }
+
+.up-next-banner {
+	flex-shrink: 1;
+	width: 80vw;
+	display: flex;
+	justify-content: space-between;
+}
+
+.up-next-title {
+	text-decoration: underline;
+}
+
+#clear-up-next {
+	color: coral;
+	cursor: pointer;
+}

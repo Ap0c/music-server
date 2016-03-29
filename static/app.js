@@ -522,7 +522,7 @@ var Views = (function Views (db) {
 	// Adds a single song by id, with option to add it to the back or the front.
 	exports.addNextSong = function (id, front) {
 
-		db.getSong(id).then(function (song) {
+		return db.getSong(id).then(function (song) {
 
 			if (front) {
 
@@ -538,12 +538,21 @@ var Views = (function Views (db) {
 
 	};
 
-	// Clears the up next list.
-	exports.clearNext = function () {
+	// Clears the current song and the up next list.
+	exports.clearSongs = function () {
+
+		for (var i = 0, len = songNames.length; i < len; i++) {
+			songNames[i].textContent = '-';
+		}
+
+		artistName.textContent = '-';
+		albumName.textContent = '-';
 
 		while (upNext.firstChild) {
 			upNext.removeChild(upNext.firstChild);
 		}
+
+		exports.pauseIcon();
 
 	};
 
@@ -613,7 +622,13 @@ var Player = (function Player (db, views) {
 
 	// Adds songs to the queue.
 	exports.queue = function (ids) {
+
 		upNext = upNext.concat(ids);
+
+		if (!nowPlaying) {
+			exports.next();
+		}
+
 	};
 
 	// Skips to next song.
@@ -658,6 +673,7 @@ var Player = (function Player (db, views) {
 	exports.clear = function () {
 
 		nowPlaying = null;
+		audio.src = '';
 		upNext = [];
 		previous = [];
 
@@ -685,8 +701,8 @@ var Controls = (function Controls (db, views, player) {
 			return song.id;
 		});
 
-		player.queue(ids);
 		views.addNextSongs(songs);
+		player.queue(ids);
 
 	}
 
@@ -710,7 +726,7 @@ var Controls = (function Controls (db, views, player) {
 
 		var view = views.view;
 		player.clear();
-		views.clearNext();
+		views.clearSongs();
 
 		if (view.name === 'album') {
 			return queueAlbum(view.id, id);
@@ -727,8 +743,9 @@ var Controls = (function Controls (db, views, player) {
 
 		if (view.name === 'album' || view.name === 'songs') {
 
-			player.queue(id);
-			views.addNextSong(id);
+			views.addNextSong(id).then(function () {
+				player.queue(id);
+			});
 
 		} else if (view.name === 'artist' || view.name === 'albums') {
 			db.getAlbum(id).then(queueSongs);
@@ -750,6 +767,7 @@ var Controls = (function Controls (db, views, player) {
 		var closePlayer = document.getElementById('close-player');
 		var ffButton = document.getElementById('ff-icon');
 		var rewButton = document.getElementById('rew-icon');
+		var clearUpNext = document.getElementById('clear-up-next');
 
 		nav.addEventListener('click', function (event) {
 
@@ -776,6 +794,12 @@ var Controls = (function Controls (db, views, player) {
 		closePlayer.addEventListener('click', views.hidePlayer);
 		ffButton.addEventListener('click', player.next);
 		rewButton.addEventListener('click', player.previous);
+		clearUpNext.addEventListener('click', function () {
+
+			player.clear();
+			views.clearSongs();
+
+		});
 
 	}
 
