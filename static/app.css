@@ -118,7 +118,7 @@ svg {
 
 .player-controls {
 	display: flex;
-	flex-grow: 1;
+	flex-grow: 2;
 }
 
 .hidden-overlay {
@@ -134,10 +134,15 @@ svg {
 .up-next {
 	list-style: none;
 	width: 80vw;
-	flex: 2 1 50vh;
+	flex: 2 1 40vh;
 	margin: 1em 0 3em;
+	padding: 0.5em;
 	overflow-y: scroll;
 	border: 1px solid #000;
+}
+
+.up-next li {
+	padding: 0.3em 0;
 }
 
 .up-next-banner {
