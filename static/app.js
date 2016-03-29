@@ -307,10 +307,12 @@ var Views = (function Views (db) {
 	// DOM Elements.
 	var nav = document.getElementById('navigation');
 	var locationBar = document.getElementById('location-bar');
-	var playIcon = document.getElementById('play-icon');
-	var pauseIcon = document.getElementById('pause-icon');
-	var playingSong = document.getElementById('song-name');
+	var playIcons = document.getElementsByClassName('play-icon');
+	var pauseIcons = document.getElementsByClassName('pause-icon');
+	var songNames = document.getElementsByClassName('song-name');
 	var playerOverlay = document.getElementById('player-overlay');
+	var artistName = playerOverlay.getElementsByClassName('artist-name')[0];
+	var albumName = playerOverlay.getElementsByClassName('album-name')[0];
 
 	// ----- Functions ----- //
 
@@ -434,28 +436,59 @@ var Views = (function Views (db) {
 
 	// Displays the controls.
 	exports.ready = function () {
-		playIcon.classList.remove('hidden');
+
+		var playbackIcons = document.getElementsByClassName('playback-icon');
+
+		for (var i = 0, len = playbackIcons.length; i < len; i++) {
+			playbackIcons[i].classList.remove('hidden');
+		}
+
 	};
 
 	// Shows the play icon, hides the pause icon.
 	exports.playIcon = function () {
 
-		pauseIcon.classList.remove('active-icon');
-		playIcon.classList.add('active-icon');
+		for (var i = 0, lenOne = pauseIcons.length; i < lenOne; i++) {
+			pauseIcons[i].classList.add('display-off');
+		}
+
+		for (var j = 0, lenTwo = playIcons.length; j < lenTwo; j++) {
+			playIcons[j].classList.remove('display-off');
+		}
 
 	};
 
 	// Shows the pause icon, hides the play icon.
 	exports.pauseIcon = function () {
 
-		playIcon.classList.remove('active-icon');
-		pauseIcon.classList.add('active-icon');
+		for (var i = 0, lenOne = pauseIcons.length; i < lenOne; i++) {
+			pauseIcons[i].classList.remove('display-off');
+		}
+
+		for (var j = 0, lenTwo = playIcons.length; j < lenTwo; j++) {
+			playIcons[j].classList.add('display-off');
+		}
 
 	};
 
 	// Updates the currently playing song.
-	exports.playingSong = function (name) {
-		playingSong.textContent = name;
+	exports.playingSong = function (song) {
+
+		var getNames = [db.artistName(song.artist), db.albumName(song.album)];
+
+		return Promise.all(getNames).then(function (names) {
+
+			for (var i = 0, len = songNames.length; i < len; i++) {
+				songNames[i].textContent = song.name;
+			}
+
+			artistName.textContent = names[0];
+			albumName.textContent = names[1];
+
+		}).catch(function (err) {
+			console.log(err);
+		});
+		
 	};
 
 	// Shows the player overlay.
@@ -495,9 +528,11 @@ var Player = (function Player (db, views) {
 		return db.getSong(id).then(function (song) {
 
 			nowPlaying = song;
-			views.playingSong(song.name);
+			views.playingSong(song);
 			audio.src = musicPath + song.path;
 
+		}).catch(function (err) {
+			console.log(err);
 		});
 
 	}
@@ -579,8 +614,8 @@ var Controls = (function Controls (db, views, player) {
 	// ----- Properties ----- //
 
 	var nav = document.getElementById('navigation');
-	var playButton = document.getElementById('play-icon');
-	var pauseButton = document.getElementById('pause-icon');
+	var playButtons = document.getElementsByClassName('play-icon');
+	var pauseButtons = document.getElementsByClassName('pause-icon');
 
 	// ----- Functions ----- //
 
@@ -661,8 +696,13 @@ var Controls = (function Controls (db, views, player) {
 
 	});
 
-	playButton.addEventListener('click', player.play);
-	pauseButton.addEventListener('click', player.pause);
+	for (var i = 0, lenOne = pauseButtons.length; i < lenOne; i++) {
+		pauseButtons[i].addEventListener('click', player.pause);
+	}
+
+	for (var j = 0, lenTwo = playButtons.length; j < lenTwo; j++) {
+		playButtons[j].addEventListener('click', player.play);
+	}
 
 });
 

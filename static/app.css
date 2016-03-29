@@ -73,7 +73,7 @@ html, body {
 }
 
 svg {
-	display: none;
+	display: block;
 	height: 100%;
 	flex-shrink: 0;
 	cursor: pointer;
@@ -83,13 +83,13 @@ svg {
 	visibility: hidden;
 }
 
-#song-name {
+.song-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.active-icon {
-	display: block;
+.display-off {
+	display: none;
 }
 
 
