@@ -4,11 +4,11 @@
 
 // Queries.
 const LIST_QUERIES = {
-	artists: 'SELECT id, name FROM artists WHERE library = ?',
-	albums: 'SELECT id, name FROM albums WHERE library = ?',
-	songs: 'SELECT id, name FROM songs WHERE library = ?',
-	artist: 'SELECT id, name FROM albums WHERE artist = ?',
-	album: 'SELECT id, name FROM songs WHERE album = ?'
+	artists: 'SELECT id, name FROM artists WHERE library = ? ORDER BY name',
+	albums: 'SELECT id, name FROM albums WHERE library = ? ORDER BY name',
+	songs: 'SELECT id, name FROM songs WHERE library = ? ORDER BY name',
+	artist: 'SELECT id, name FROM albums WHERE artist = ? ORDER BY name',
+	album: 'SELECT id, name FROM songs WHERE album = ? ORDER BY number'
 };
 
 const NAME_QUERIES = {

@@ -164,18 +164,20 @@ var Db = (function Database () {
 	}
 
 	// Gets all items from a table for a specific selector.
-	function listQuery (tableName, selector, selectValue) {
+	function listQuery (tableName, selector, selectValue, order) {
 
 		var table = db.getSchema().table(tableName);
+		var query = db.select(table.id, table.name).from(table);
 
 		if (selector) {
-
-			return db.select(table.id, table.name).from(table)
-				.where(table[selector].eq(selectValue)).exec();
-
-		} else {
-			return db.select(table.id, table.name).from(table).exec();
+			query = query.where(table[selector].eq(selectValue));
 		}
+
+		if (order) {
+			query = query.orderBy(table[order]);
+		}
+
+		return query.exec();
 
 	}
 
@@ -195,27 +197,27 @@ var Db = (function Database () {
 
 	// Retrieves all songs in a library.
 	exports.getSongs = function (library) {
-		return listQuery('Songs', 'library', library);
+		return listQuery('Songs', 'library', library, 'name');
 	};
 
 	// Retrieves all artists in a library.
 	exports.getArtists = function (library) {
-		return listQuery('Artists', 'library', library);
+		return listQuery('Artists', 'library', library, 'name');
 	};
 
 	// Retrieves all albums in a library.
 	exports.getAlbums = function (library) {
-		return listQuery('Albums', 'library', library);
+		return listQuery('Albums', 'library', library, 'name');
 	};
 
 	// Retrieves all albums for an artist.
 	exports.getArtist = function (artist) {
-		return listQuery('Albums', 'artist', artist);
+		return listQuery('Albums', 'artist', artist, 'name');
 	};
 
 	// Retrieves all songs for an album.
 	exports.getAlbum = function (album) {
-		return listQuery('Songs', 'album', album);
+		return listQuery('Songs', 'album', album, 'number');
 	};
 
 	// Retrieves song data.
@@ -232,7 +234,7 @@ var Db = (function Database () {
 
 	// Retrieves all songs for an album.
 	exports.getLibraries = function () {
-		return listQuery('Libraries');
+		return listQuery('Libraries', null, null, 'name');
 	};
 
 	// Retrieves the name of a library.

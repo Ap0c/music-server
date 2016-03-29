@@ -81,7 +81,12 @@ function readSongs (albumPath, filename) {
 
 		let songName = path.parse(filename).name;
 		let leadingNumber = parseInt(songName.split(' ')[0]);
-		let number = isNaN(leadingNumber) ? null : leadingNumber;
+		let number = null;
+
+		if (!isNaN(leadingNumber)) {
+			let number = leadingNumber;
+			songName = songName.substr(songName.indexOf(' ') + 1);
+		}
 
 		return { name: songName, path: songPath.relative, number: number };
 
