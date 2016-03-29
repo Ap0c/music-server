@@ -78,11 +78,15 @@ svg {
 	flex-shrink: 0;
 }
 
-#play-icon {
-	display: block;
+.hidden {
+	visibility: hidden;
 }
 
 #song-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.active-icon {
+	display: block;
 }

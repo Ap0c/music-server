@@ -303,6 +303,10 @@ var Views = (function Views (db) {
 	var nav = document.getElementById('navigation');
 	var locationBar = document.getElementById('location-bar');
 	var view = navigation.dataset.view;
+	var exports = {};
+	var playIcon = document.getElementById('play-icon');
+	var pauseIcon = document.getElementById('pause-icon');
+	var playingSong = document.getElementById('song-name');
 
 	// ----- Functions ----- //
 
@@ -417,15 +421,44 @@ var Views = (function Views (db) {
 
 	});
 
+	// ----- Methods ----- //
+
+	// Getter for the current view.
+	Object.defineProperty(exports, 'view', {
+		get: function () { return view; }
+	});
+
+	// Displays the controls.
+	exports.ready = function () {
+		playIcon.classList.remove('hidden');
+	};
+
+	// Shows the play icon, hides the pause icon.
+	exports.playIcon = function () {
+
+		pauseIcon.classList.remove('active-icon');
+		playIcon.classList.add('active-icon');
+
+	};
+
+	// Shows the pause icon, hides the play icon.
+	exports.pauseIcon = function () {
+
+		playIcon.classList.remove('active-icon');
+		pauseIcon.classList.add('active-icon');
+
+	};
+
+	// Updates the currently playing song.
+	exports.playingSong = function (name) {
+		playingSong.textContent = name;
+	};
+
 	// ----- Constructor ----- //
 
 	page();
 
-	return {
-		get view () {
-			return view;
-		}
-	};
+	return exports;
 
 });
 
@@ -448,6 +481,7 @@ var Player = (function Player (db, views) {
 		return db.getSong(id).then(function (song) {
 
 			nowPlaying = song;
+			views.playingSong(song.name);
 			audio.src = musicPath + song.path;
 
 		});
@@ -458,14 +492,18 @@ var Player = (function Player (db, views) {
 
 	// Plays the current song.
 	exports.play = function () {
+
 		audio.play();
-		console.log(nowPlaying);
-		console.log(upNext);
+		views.pauseIcon();
+		
 	};
 
 	// Pauses the current song.
 	exports.pause = function () {
+
 		audio.pause();
+		views.playIcon();
+
 	};
 
 	// Adds songs to the queue.
@@ -618,9 +656,11 @@ function setup () {
 	Db().then(function (db) {
 
 		var views = Views(db);
-		var player = Player(db);
+		var player = Player(db, views);
 		myPlayer = player;
+
 		var controls = Controls(db, views, player);
+		views.ready();
 
 	}).catch(function (err) {
 		console.log(err);
