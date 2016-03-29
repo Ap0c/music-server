@@ -163,14 +163,14 @@ var Db = (function Database () {
 
 	}
 
-	// Gets all items from a table for a specific selector.
-	function listQuery (tableName, selector, selectValue, order) {
+	// Gets all items from a table for a specific selector, in a given order.
+	function listQuery (tableName, selector, order) {
 
 		var table = db.getSchema().table(tableName);
 		var query = db.select(table.id, table.name).from(table);
 
 		if (selector) {
-			query = query.where(table[selector].eq(selectValue));
+			query = query.where(table[selector.name].eq(selector.value));
 		}
 
 		if (order) {
@@ -197,27 +197,49 @@ var Db = (function Database () {
 
 	// Retrieves all songs in a library.
 	exports.getSongs = function (library) {
-		return listQuery('Songs', 'library', library, 'name');
+		return listQuery('Songs', {name: 'library', value: library}, 'name');
+	};
+
+	// Retrieves all songs in a library with a name >= the name of the song
+	// that matches the passed id.
+	exports.songsSlice = function (library, id) {
+
+		var songs = db.getSchema().table('Songs');
+
+		return db.select(songs.name).from(songs).where(songs.id.eq(id)).exec()
+			.then(function (result) {
+
+			var name = result[0].name;
+
+			return db.select(songs.id).from(songs).where(lf.op.and(
+					songs.library.eq(library),
+					songs.name.gte(name)
+				)).orderBy(songs.name).exec();
+
+		}).catch(function (err) {
+			console.log(err);
+		});
+
 	};
 
 	// Retrieves all artists in a library.
 	exports.getArtists = function (library) {
-		return listQuery('Artists', 'library', library, 'name');
+		return listQuery('Artists', {name: 'library', value: library}, 'name');
 	};
 
 	// Retrieves all albums in a library.
 	exports.getAlbums = function (library) {
-		return listQuery('Albums', 'library', library, 'name');
+		return listQuery('Albums', {name: 'library', value: library}, 'name');
 	};
 
 	// Retrieves all albums for an artist.
 	exports.getArtist = function (artist) {
-		return listQuery('Albums', 'artist', artist, 'name');
+		return listQuery('Albums', {name: 'artist', value: artist}, 'name');
 	};
 
 	// Retrieves all songs for an album.
 	exports.getAlbum = function (album) {
-		return listQuery('Songs', 'album', album, 'number');
+		return listQuery('Songs', {name: 'album', value: album}, 'number');
 	};
 
 	// Retrieves song data.
@@ -228,13 +250,15 @@ var Db = (function Database () {
 		return db.select().from(songs).where(songs.id.eq(id)).exec()
 			.then(function (result) {
 				return result[0];
-			});
+		}).catch(function (err) {
+			console.log(err);
+		});
 
 	};
 
 	// Retrieves all songs for an album.
 	exports.getLibraries = function () {
-		return listQuery('Libraries', null, null, 'name');
+		return listQuery('Libraries', null, 'name');
 	};
 
 	// Retrieves the name of a library.
@@ -456,9 +480,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = upNext.shift();
-
 			newSong(id);
-			exports.play();
 
 		}
 
@@ -476,9 +498,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = previous.pop();
-
 			exports.newSong(id);
-			exports.play();
 
 		}
 
@@ -503,41 +523,40 @@ var Player = (function Player (db, views) {
 // ----- Functions ----- //
 
 // Queues songs retrieved from the passed getSongs function.
-function queueSongs (getSongs, selector, player) {
+function queueSongs (player, songs) {
 
-	console.log('Queueing');
-
-	return getSongs(selector).then(function (songs) {
-
-		var ids = songs.map(function (song) {
-			return song.id;
-		});
-
-		player.queue(ids);
-
-	}).catch(function (err) {
-		console.log(err);
+	var ids = songs.map(function (song) {
+		return song.id;
 	});
+
+	player.queue(ids);
+	player.next();
+	player.play();
 
 }
 
 // Plays all songs in the current view.
-function playSongs (db, player, views) {
+function playSongs (db, player, views, id) {
 
-	console.log('Playing');
 	var currentView = views.view;
 	player.clear();
 
 	if (currentView.name === 'album') {
-		queueSongs(db.getAlbum, currentView.id, player).then(play);
+
+		db.getAlbum(currentView.id).then(function (songs) {
+
+			var firstSong = songs.findIndex(function (song) {
+				return song.id === id;
+			});
+			queueSongs(player, songs.slice(firstSong));
+
+		});
+
 	} else if (currentView.name === 'librarySongs') {
-		queueSongs(db.getSongs, currentView.id, player).then(play);
-	}
 
-	function play () {
-
-		player.next();
-		player.play();
+		db.songsSlice(currentView.id, id).then(function (songs) {
+			queueSongs(player, songs);
+		});
 
 	}
 
@@ -554,7 +573,7 @@ function playbackControl (db, player, views) {
 		var id = parseInt(target.parentNode.dataset.id);
 
 		if (target.classList.contains('song')) {
-			playSongs(db, player, views);
+			playSongs(db, player, views, id);
 		} else if (target.className === 'plus') {
 			player.queue(id);
 		}
