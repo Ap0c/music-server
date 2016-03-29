@@ -228,8 +228,8 @@ var Db = (function Database () {
 
 		var songs = db.getSchema().table('Songs');
 
-		return db.select(songs.id).from(songs).where(songs.artist.eq(artist))
-			.exec();
+		return db.select(songs.id, songs.name).from(songs)
+			.where(songs.artist.eq(artist)).exec();
 
 	};
 
@@ -313,6 +313,7 @@ var Views = (function Views (db) {
 	var playerOverlay = document.getElementsByClassName('player-overlay')[0];
 	var artistName = playerOverlay.getElementsByClassName('artist-name')[0];
 	var albumName = playerOverlay.getElementsByClassName('album-name')[0];
+	var upNext = playerOverlay.getElementsByClassName('up-next')[0];
 
 	// ----- Functions ----- //
 
@@ -501,6 +502,56 @@ var Views = (function Views (db) {
 		playerOverlay.classList.add('hidden-overlay');
 	};
 
+	// Adds songs to up next.
+	exports.addNextSongs = function (songs) {
+
+		var docFrag = document.createDocumentFragment();
+
+		for (var song of songs) {
+
+			var li = document.createElement('li');
+			li.textContent = song.name;
+			docFrag.appendChild(li);
+
+		}
+
+		upNext.appendChild(docFrag);
+
+	};
+
+	// Adds a single song by id, with option to add it to the back or the front.
+	exports.addNextSong = function (id, front) {
+
+		db.getSong(id).then(function (song) {
+
+			if (front) {
+
+				var li = document.createElement('li');
+				li.textContent = song.name;
+				upNext.insertBefore(li, upNext.firstChild);
+				
+			} else {
+				exports.addNextSongs([song]);
+			}
+
+		});
+
+	};
+
+	// Clears the up next list.
+	exports.clearNext = function () {
+
+		while (upNext.firstChild) {
+			upNext.removeChild(upNext.firstChild);
+		}
+
+	};
+
+	// Pops a song off the front of the next up list.
+	exports.popNextSong = function () {
+		upNext.removeChild(upNext.firstChild);
+	};
+
 	// ----- Constructor ----- //
 
 	page();
@@ -575,6 +626,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = upNext.shift();
+			views.popNextSong();
 			return newSong(id);
 
 		}
@@ -589,7 +641,10 @@ var Player = (function Player (db, views) {
 		} else if (previous.length > 0) {
 
 			if (nowPlaying) {
+
 				upNext.unshift(nowPlaying.id);
+				views.addNextSong(nowPlaying.id, true);
+
 			}
 
 			var id = previous.pop();
@@ -631,6 +686,7 @@ var Controls = (function Controls (db, views, player) {
 		});
 
 		player.queue(ids);
+		views.addNextSongs(songs);
 
 	}
 
@@ -654,6 +710,7 @@ var Controls = (function Controls (db, views, player) {
 
 		var view = views.view;
 		player.clear();
+		views.clearNext();
 
 		if (view.name === 'album') {
 			return queueAlbum(view.id, id);
@@ -669,7 +726,10 @@ var Controls = (function Controls (db, views, player) {
 		var view = views.view;
 
 		if (view.name === 'album' || view.name === 'songs') {
+
 			player.queue(id);
+			views.addNextSong(id);
+
 		} else if (view.name === 'artist' || view.name === 'albums') {
 			db.getAlbum(id).then(queueSongs);
 		} else if (view.name === 'artists') {
