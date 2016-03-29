@@ -27,11 +27,11 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 
 		section.player-overlay.hidden-overlay
 			div#close-player x
-			div.song-name
-			div.artist-name
-			div.album-name
+			div.song-name.song-info
+			div.artist-name.song-info
+			div.album-name.song-info
 			div.player-controls
-				<svg id="ff-icon" class="playback-icon hidden" xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50">
+				<svg id="rew-icon" class="playback-icon hidden" xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50">
 					<polygon points="25,15 10,25 25,35" />
 					<polygon points="40,15 25,25 40,35" />
 					<rect x="0" y="0" width="50" height="50" fill-opacity="0.0" />
@@ -50,6 +50,7 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 					<polygon points="25,15 40,25 25,35" />
 					<rect x="0" y="0" width="50" height="50" fill-opacity="0.0" />
 				</svg>
+			ul.up-next
 
 		script(type='text/javascript', src='/static/fetch.js')
 		script(type='text/javascript', src='/static/lovefield.min.js')

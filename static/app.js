@@ -529,7 +529,12 @@ var Player = (function Player (db, views) {
 
 			nowPlaying = song;
 			views.playingSong(song);
+			var wasPaused = audio.paused;
 			audio.src = musicPath + song.path;
+
+			if (!wasPaused) {
+				exports.play();
+			}
 
 		}).catch(function (err) {
 			console.log(err);
@@ -544,7 +549,7 @@ var Player = (function Player (db, views) {
 
 		audio.play();
 		views.pauseIcon();
-		
+
 	};
 
 	// Pauses the current song.
@@ -683,6 +688,8 @@ var Controls = (function Controls (db, views, player) {
 		var pauseButtons = document.getElementsByClassName('pause-icon');
 		var playerBarName = document.getElementById('player-bar-name');
 		var closePlayer = document.getElementById('close-player');
+		var ffButton = document.getElementById('ff-icon');
+		var rewButton = document.getElementById('rew-icon');
 
 		nav.addEventListener('click', function (event) {
 
@@ -707,6 +714,8 @@ var Controls = (function Controls (db, views, player) {
 
 		playerBarName.addEventListener('click', views.showPlayer);
 		closePlayer.addEventListener('click', views.hidePlayer);
+		ffButton.addEventListener('click', player.next);
+		rewButton.addEventListener('click', player.previous);
 
 	}
 

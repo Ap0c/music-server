@@ -112,8 +112,13 @@ svg {
 	justify-content: center;
 }
 
+.song-info {
+	flex-grow: 1;
+}
+
 .player-controls {
 	display: flex;
+	flex-grow: 1;
 }
 
 .hidden-overlay {
@@ -124,4 +129,13 @@ svg {
 	padding: 1em;
 	align-self: flex-start;
 	cursor: pointer;
+}
+
+.up-next {
+	list-style: none;
+	width: 80vw;
+	flex: 2 1 50vh;
+	margin: 1em 0 3em;
+	overflow-y: scroll;
+	border: 1px solid #000;
 }
