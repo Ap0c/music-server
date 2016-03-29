@@ -310,7 +310,7 @@ var Views = (function Views (db) {
 	var playIcons = document.getElementsByClassName('play-icon');
 	var pauseIcons = document.getElementsByClassName('pause-icon');
 	var songNames = document.getElementsByClassName('song-name');
-	var playerOverlay = document.getElementById('player-overlay');
+	var playerOverlay = document.getElementsByClassName('player-overlay')[0];
 	var artistName = playerOverlay.getElementsByClassName('artist-name')[0];
 	var albumName = playerOverlay.getElementsByClassName('album-name')[0];
 
@@ -611,12 +611,6 @@ var Player = (function Player (db, views) {
 
 var Controls = (function Controls (db, views, player) {
 
-	// ----- Properties ----- //
-
-	var nav = document.getElementById('navigation');
-	var playButtons = document.getElementsByClassName('play-icon');
-	var pauseButtons = document.getElementsByClassName('pause-icon');
-
 	// ----- Functions ----- //
 
 	// Play the next song.
@@ -681,28 +675,44 @@ var Controls = (function Controls (db, views, player) {
 
 	}
 
-	// ----- Constructor ----- //
+	// Set up click listeners.
+	function setupListeners () {
 
-	nav.addEventListener('click', function (event) {
+		var nav = document.getElementById('navigation');
+		var playButtons = document.getElementsByClassName('play-icon');
+		var pauseButtons = document.getElementsByClassName('pause-icon');
+		var playerBarName = document.getElementById('player-bar-name');
+		var closePlayer = document.getElementById('close-player');
 
-		var target = event.target;
-		var id = parseInt(target.parentNode.dataset.id);
+		nav.addEventListener('click', function (event) {
 
-		if (target.classList.contains('song')) {
-			playSongs(id).then(playNext);
-		} else if (target.className === 'plus') {
-			plusQueue(id);
+			var target = event.target;
+			var id = parseInt(target.parentNode.dataset.id);
+
+			if (target.classList.contains('song')) {
+				playSongs(id).then(playNext);
+			} else if (target.className === 'plus') {
+				plusQueue(id);
+			}
+
+		});
+
+		for (var i = 0, lenOne = pauseButtons.length; i < lenOne; i++) {
+			pauseButtons[i].addEventListener('click', player.pause);
 		}
 
-	});
+		for (var j = 0, lenTwo = playButtons.length; j < lenTwo; j++) {
+			playButtons[j].addEventListener('click', player.play);
+		}
 
-	for (var i = 0, lenOne = pauseButtons.length; i < lenOne; i++) {
-		pauseButtons[i].addEventListener('click', player.pause);
+		playerBarName.addEventListener('click', views.showPlayer);
+		closePlayer.addEventListener('click', views.hidePlayer);
+
 	}
 
-	for (var j = 0, lenTwo = playButtons.length; j < lenTwo; j++) {
-		playButtons[j].addEventListener('click', player.play);
-	}
+	// ----- Constructor ----- //
+
+	setupListeners();
 
 });
 

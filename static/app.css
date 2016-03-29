@@ -92,18 +92,36 @@ svg {
 	display: none;
 }
 
+#player-bar-name {
+	cursor: pointer;
+}
+
 
 /* ----- Player Overlay ----- */
 
-#player-overlay {
+.player-overlay {
 	position: absolute;
 	background-color: white;
 	top: 0;
 	left: 0;
 	width: 100vw;
 	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.player-controls {
+	display: flex;
 }
 
 .hidden-overlay {
 	display: none;
+}
+
+#close-player {
+	padding: 1em;
+	align-self: flex-start;
+	cursor: pointer;
 }
