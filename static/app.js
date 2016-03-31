@@ -287,6 +287,34 @@ var Db = (function Database () {
 		return getName('Albums', id);
 	};
 
+	// Gets the library of an artist by id.
+	exports.getArtistLibrary = function (id) {
+
+		var artists = db.getSchema().table('Artists');
+
+		return db.select(artists.library).from(artists).where(artists.id.eq(id))
+			.exec().then(function (result) {
+				return result[0];
+		}).catch(function (err) {
+			console.log(err);
+		});
+
+	};
+
+	// Gets the library of an album by id.
+	exports.getAlbumLibrary = function (id) {
+
+		var albums = db.getSchema().table('Albums');
+
+		return db.select(albums.library).from(albums).where(albums.id.eq(id))
+			.exec().then(function (result) {
+				return result[0];
+		}).catch(function (err) {
+			console.log(err);
+		});
+
+	};
+
 	// ----- Constructor ----- //
 
 	var schema = build();
@@ -316,6 +344,7 @@ var Views = (function Views (db) {
 	var albumName = playerOverlay.getElementsByClassName('album-name')[0];
 	var upNext = playerOverlay.getElementsByClassName('up-next')[0];
 	var menuOverlay = document.getElementsByClassName('menu-overlay')[0];
+	var menuLinks = document.querySelectorAll('.menu-overlay a');
 
 	// ----- Functions ----- //
 
@@ -330,6 +359,29 @@ var Views = (function Views (db) {
 		}).catch(function (err) {
 			console.log(err);
 		});
+
+	}
+
+	// Fills out the menu overlay with the menu template.
+	function buildMenu (library) {
+
+		menuLinks[0].setAttribute('href', '/');
+		menuLinks[1].setAttribute('href', `/library/${library}`);
+		menuLinks[2].setAttribute('href', `/library/${library}/albums`);
+		menuLinks[3].setAttribute('href', `/library/${library}/songs`);
+
+	}
+
+	// Renders the menu overlay.
+	function renderMenu () {
+
+		if (['artists', 'albums', 'songs'].indexOf(view.name) != -1) {
+			buildMenu(view.id);
+		} else if (view === 'artist') {
+			db.getArtistLibrary(view.id).then(buildMenu);
+		} else if (view === 'album') {
+			db.getAlbumLibrary(view.id).then(buildMenu);
+		}
 
 	}
 
@@ -364,7 +416,6 @@ var Views = (function Views (db) {
 	// Displays a library (list of artists).
 	page('/library/:id', function (ctx) {
 
-		console.log('here');
 		var id = parseInt(ctx.params.id);
 
 		renderList(db.getArtists, id, function (id) {
@@ -376,6 +427,7 @@ var Views = (function Views (db) {
 		});
 
 		view = { name: 'artists', id: id };
+		renderMenu();
 
 	});
 
@@ -390,6 +442,7 @@ var Views = (function Views (db) {
 		});
 
 		view = { name: 'songs', id: id };
+		renderMenu();
 
 	});
 
@@ -407,6 +460,7 @@ var Views = (function Views (db) {
 		});
 
 		view = { name: 'albums', id: id };
+		renderMenu();
 
 	});
 
@@ -422,6 +476,7 @@ var Views = (function Views (db) {
 		db.artistName(id).then(setTitle);
 
 		view = { name: 'artist', id: id };
+		renderMenu();
 
 	});
 
@@ -434,6 +489,7 @@ var Views = (function Views (db) {
 		db.albumName(id).then(setTitle);
 
 		view = { name: 'album', id: id };
+		renderMenu();
 
 	});
 
