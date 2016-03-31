@@ -827,20 +827,10 @@ var Controls = (function Controls (db, views, player) {
 
 	}
 
-	// Set up click listeners.
-	function setupListeners () {
+	// Event handlers for clicks on the nav section.
+	function navClicks (argument) {
 
 		var nav = document.getElementById('navigation');
-		var playButtons = document.getElementsByClassName('play-icon');
-		var pauseButtons = document.getElementsByClassName('pause-icon');
-		var playerBarName = document.getElementById('player-bar-name');
-		var closePlayer = document.getElementById('close-player');
-		var ffButton = document.getElementById('ff-icon');
-		var rewButton = document.getElementById('rew-icon');
-		var clearUpNext = document.getElementById('clear-up-next');
-		var menuIcon = document.getElementById('menu-icon');
-		var menuLinks = document.querySelectorAll('.menu-overlay a');
-		var closeMenu = document.getElementById('close-menu');
 
 		nav.addEventListener('click', function (event) {
 
@@ -855,6 +845,19 @@ var Controls = (function Controls (db, views, player) {
 
 		});
 
+	}
+
+	// Event handlers for clicks related to the player.
+	function playerClicks () {
+
+		var playButtons = document.getElementsByClassName('play-icon');
+		var pauseButtons = document.getElementsByClassName('pause-icon');
+		var playerBarName = document.getElementById('player-bar-name');
+		var closePlayer = document.getElementById('close-player');
+		var ffButton = document.getElementById('ff-icon');
+		var rewButton = document.getElementById('rew-icon');
+		var clearUpNext = document.getElementById('clear-up-next');
+
 		for (var i = 0, lenOne = pauseButtons.length; i < lenOne; i++) {
 			pauseButtons[i].addEventListener('click', player.pause);
 		}
@@ -867,12 +870,22 @@ var Controls = (function Controls (db, views, player) {
 		closePlayer.addEventListener('click', views.hidePlayer);
 		ffButton.addEventListener('click', player.next);
 		rewButton.addEventListener('click', player.previous);
+
 		clearUpNext.addEventListener('click', function () {
 
 			player.clear();
 			views.clearSongs();
 
 		});
+
+	}
+
+	// Event handlers for clicks related to the menu.
+	function menuClicks () {
+
+		var menuIcon = document.getElementById('menu-icon');
+		var menuLinks = document.querySelectorAll('.menu-overlay a');
+		var closeMenu = document.getElementById('close-menu');
 
 		menuIcon.addEventListener('click', views.showMenu);
 		closeMenu.addEventListener('click', views.hideMenu);
@@ -885,7 +898,9 @@ var Controls = (function Controls (db, views, player) {
 
 	// ----- Constructor ----- //
 
-	setupListeners();
+	navClicks();
+	playerClicks();
+	menuClicks();
 
 });
 
@@ -899,8 +914,6 @@ function setup () {
 
 		var views = Views(db);
 		var player = Player(db, views);
-		myPlayer = player;
-		myViews = views;
 
 		var controls = Controls(db, views, player);
 		views.ready();
