@@ -764,11 +764,6 @@ var Controls = (function Controls (db, views, player) {
 
 	// ----- Functions ----- //
 
-	// Play the next song.
-	function playNext () {
-		player.next().then(player.play);
-	}
-
 	// Queues songs retrieved from the passed getSongs function.
 	function queueSongs (songs) {
 
@@ -853,7 +848,7 @@ var Controls = (function Controls (db, views, player) {
 			var id = parseInt(target.parentNode.dataset.id);
 
 			if (target.classList.contains('song')) {
-				playSongs(id).then(playNext);
+				playSongs(id).then(player.play);
 			} else if (target.className === 'plus') {
 				plusQueue(id);
 			}
