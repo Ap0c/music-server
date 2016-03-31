@@ -618,7 +618,7 @@ var Views = (function Views (db) {
 			upNext.removeChild(upNext.firstChild);
 		}
 
-		exports.pauseIcon();
+		exports.playIcon();
 
 	};
 
