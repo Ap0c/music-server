@@ -639,7 +639,7 @@ var Views = (function Views (db) {
 
 	// ----- Constructor ----- //
 
-	page();
+	page({ dispatch: false });
 
 	return exports;
 
