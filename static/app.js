@@ -315,6 +315,7 @@ var Views = (function Views (db) {
 	var artistName = playerOverlay.getElementsByClassName('artist-name')[0];
 	var albumName = playerOverlay.getElementsByClassName('album-name')[0];
 	var upNext = playerOverlay.getElementsByClassName('up-next')[0];
+	var menuOverlay = document.getElementsByClassName('menu-overlay')[0];
 
 	// ----- Functions ----- //
 
@@ -569,6 +570,16 @@ var Views = (function Views (db) {
 		upNext.removeChild(upNext.firstChild);
 	};
 
+	// Shows the menu overlay.
+	exports.showMenu = function () {
+		menuOverlay.classList.remove('hidden-overlay');
+	};
+
+	// Hides the menu overlay.
+	exports.hideMenu = function () {
+		menuOverlay.classList.add('hidden-overlay');
+	};
+
 	// ----- Constructor ----- //
 
 	page();
@@ -776,6 +787,8 @@ var Controls = (function Controls (db, views, player) {
 		var ffButton = document.getElementById('ff-icon');
 		var rewButton = document.getElementById('rew-icon');
 		var clearUpNext = document.getElementById('clear-up-next');
+		var menuIcon = document.getElementById('menu-icon');
+		var closeMenu = document.getElementById('close-menu');
 
 		nav.addEventListener('click', function (event) {
 
@@ -808,6 +821,9 @@ var Controls = (function Controls (db, views, player) {
 			views.clearSongs();
 
 		});
+
+		menuIcon.addEventListener('click', views.showMenu);
+		closePlayer.addEventListener('click', views.hideMenu);
 
 	}
 

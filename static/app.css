@@ -125,10 +125,6 @@ svg {
 	flex-grow: 2;
 }
 
-.hidden-overlay {
-	display: none;
-}
-
 #close-player {
 	padding: 1em;
 	align-self: flex-start;
@@ -163,4 +159,38 @@ svg {
 #clear-up-next {
 	color: coral;
 	cursor: pointer;
+}
+
+
+/* ----- Menu Overlay ----- */
+
+.menu-overlay {
+	position: absolute;
+	background-color: white;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+#close-menu {
+	padding: 1em;
+	align-self: flex-start;
+	cursor: pointer;
+}
+
+.player-overlay a {
+	display: block;
+	text-decoration: none;
+}
+
+
+/* ----- All Overlays ----- */
+
+.hidden-overlay {
+	display: none;
 }
