@@ -72,29 +72,60 @@ function getTitle (db, res, type, id) {
 
 }
 
+// Retrieves the id of a library based on a specific view.
+function getLibrary (view, id, db) {
+
+	let query = '';
+
+	if (['artists', 'albums', 'songs'].indexOf(view) != -1) {
+		return Promise.resolve(id);
+	} else if (view === 'artist') {
+		query = 'SELECT library FROM artists WHERE id = ?';
+	} else if (view === 'album') {
+		query = 'SELECT library FROM albums WHERE id = ?';
+	}
+
+	return db.query(query, id).then((result) => {
+		return result[0].library;
+	});
+
+}
+
 // Retrieves a list and renders the view.
 function listView (view, id, db, res, urlCallback) {
 
 	db.connect();
 
-	res.promise(getTitle(db, res, view, id).then((title) => {
+	res.promise(() => {
 
-		if (title) {
+		let getData = [
+			getTitle(db, res, view, id),
+			db.query(LIST_QUERIES[view], id),
+			getLibrary(view, id, db)
+		];
 
-			return db.query(LIST_QUERIES[view], id).then((list) => {
+		return Promise.all(getData).then((data) => {
+
+			let title = data[0];
+			let list = data[1];
+			let library = data[2];
+			console.log(library);
+
+			if (title) {
 
 				res.render('app', {
 					title: title,
 					list: list,
 					view: view,
-					url: urlCallback
+					url: urlCallback,
+					library: library
 				});
 
-			});
+			}
 
-		}
+		});
 
-	}));
+	}());
 
 }
 
