@@ -96,35 +96,37 @@ function listView (view, id, db, res, urlCallback) {
 
 	db.connect();
 
-	res.promise(() => {
+	res.promise(getTitle(db, res, view, id).then((title) => {
 
-		let getData = [
-			getTitle(db, res, view, id),
-			db.query(LIST_QUERIES[view], id),
-			getLibrary(view, id, db)
-		];
+		if (title) {
 
-		return Promise.all(getData).then((data) => {
+			let getData = [
+				db.query(LIST_QUERIES[view], id),
+				getLibrary(view, id, db)
+			];
 
-			let title = data[0];
-			let list = data[1];
-			let library = data[2];
+			return Promise.all(getData).then((data) => {
 
-			if (title) {
+				let list = data[0];
+				let library = data[1];
+				let menuLinks = {
+					libraries: '/',
+					artists: `/library/${library}`,
+					albums: `/library/${library}/albums`,
+					songs: `/library/${library}/songs`
+				};
 
 				res.render('app', {
 					title: title,
 					list: list,
 					view: view,
 					url: urlCallback,
-					library: library
+					menuLinks: menuLinks
 				});
+			});
+		}
 
-			}
-
-		});
-
-	}());
+	}));
 
 }
 

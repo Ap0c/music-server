@@ -788,6 +788,7 @@ var Controls = (function Controls (db, views, player) {
 		var rewButton = document.getElementById('rew-icon');
 		var clearUpNext = document.getElementById('clear-up-next');
 		var menuIcon = document.getElementById('menu-icon');
+		var menuLinks = document.querySelectorAll('.menu-overlay a');
 		var closeMenu = document.getElementById('close-menu');
 
 		nav.addEventListener('click', function (event) {
@@ -823,7 +824,11 @@ var Controls = (function Controls (db, views, player) {
 		});
 
 		menuIcon.addEventListener('click', views.showMenu);
-		closePlayer.addEventListener('click', views.hideMenu);
+		closeMenu.addEventListener('click', views.hideMenu);
+
+		for (var k = menuLinks.length - 1; k >= 0; k--) {
+			menuLinks[k].addEventListener('click', views.hideMenu);
+		}
 
 	}
 

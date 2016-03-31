@@ -1,7 +1,4 @@
 - var menuClass = (view === 'libraries') ? 'display-off' : '';
-- var artistsLink = `/library/${library}`;
-- var albumsLink = `/library/${library}/albums`;
-- var songsLink = `/library/${library}/songs`;
 
 doctype html
 html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
@@ -69,11 +66,7 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 
 		section.menu-overlay.hidden-overlay
 			if (view !== 'libraries')
-				a(href='/') Libraries
-				a(href=artistsLink) Artists
-				a(href=albumsLink) Albums
-				a(href=songsLink) Songs
-				div#close-menu x
+				include menu.pug
 
 		script(type='text/javascript', src='/static/fetch.js')
 		script(type='text/javascript', src='/static/lovefield.min.js')

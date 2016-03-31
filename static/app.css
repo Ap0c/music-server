@@ -181,11 +181,15 @@ svg {
 	padding: 1em;
 	align-self: flex-start;
 	cursor: pointer;
+	font-size: large;
 }
 
-.player-overlay a {
+.menu-overlay a {
 	display: block;
 	text-decoration: none;
+	color: black;
+	font-size: x-large;
+	padding: 1em 0;
 }
 
 
