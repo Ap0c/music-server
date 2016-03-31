@@ -16,9 +16,9 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 			section#location-bar
 				span#location-title= title
 				svg(id="menu-icon" class=menuClass xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 50 50")
-					<rect x=10 y="10" width="30" height="4" />
+					<rect x=10 y="12" width="30" height="4" />
 					<rect x="10" y="23" width="30" height="4" />
-					<rect x="10" y="36" width="30" height="4" />
+					<rect x="10" y="34" width="30" height="4" />
 					<rect x="0" y="0" width="50" height="50" fill-opacity="0.0" />
 
 			section#navigation(data-view=view)
@@ -68,16 +68,17 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 
 		section.menu-overlay.hidden-overlay
 			div#close-menu x
-			if (menuLinks)
-				a(href=menuLinks.libraries) Libraries
-				a(href=menuLinks.artists) Artists
-				a(href=menuLinks.albums) Albums
-				a(href=menuLinks.songs) Songs
-			else
-				a Libraries
-				a Artists
-				a Albums
-				a Songs
+			div.menu-links
+				if (menuLinks)
+					a(href=menuLinks.libraries) Libraries
+					a(href=menuLinks.artists) Artists
+					a(href=menuLinks.albums) Albums
+					a(href=menuLinks.songs) Songs
+				else
+					a Libraries
+					a Artists
+					a Albums
+					a Songs
 
 		script(type='text/javascript', src='/static/fetch.js')
 		script(type='text/javascript', src='/static/lovefield.min.js')

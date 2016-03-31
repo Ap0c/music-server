@@ -4,6 +4,7 @@ html, body {
 	padding: 0;
 	margin: 0;
 	font-family: sans-serif;
+	color: #10aeb2;
 }
 
 .display-off {
@@ -17,16 +18,24 @@ html, body {
 
 /* ----- Main View ----- */
 
+main {
+	display: flex;
+	flex-direction: column;
+}
+
 #location-bar, #player-bar {
 	height: 8vh;
 	width: 100vw;
 	background-color: coral;
+	color: #fff;
+	fill: #fff;
+
 }
 
 #navigation {
 	height: 84vh;
 	width: 100vw;
-	background-color: lightblue;
+	background-color: #fff;
 }
 
 
@@ -115,6 +124,7 @@ svg {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	fill: coral;
 }
 
 .song-info {
@@ -130,6 +140,7 @@ svg {
 	padding: 1em;
 	align-self: flex-start;
 	cursor: pointer;
+	color: coral;
 }
 
 .up-next {
@@ -176,7 +187,6 @@ svg {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
 }
 
 #close-menu {
@@ -184,14 +194,25 @@ svg {
 	align-self: flex-start;
 	cursor: pointer;
 	font-size: large;
+	color: coral;
+	flex-shrink: 1;
+}
+
+.menu-links {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 1;
 }
 
 .menu-overlay a {
 	display: block;
 	text-decoration: none;
-	color: black;
+	color: inherit;
 	font-size: x-large;
 	padding: 1em 0;
+	flex-shrink: 1;
 }
 
 
