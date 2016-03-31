@@ -757,6 +757,10 @@ var Player = (function Player (db, views) {
 
 	// ----- Constructor ----- //
 
+	audio.addEventListener('ended', function playNext () {
+		exports.next().then(exports.play);
+	});
+
 	return exports;
 
 });

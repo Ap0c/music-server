@@ -101,6 +101,10 @@ svg {
 	cursor: pointer;
 }
 
+#player-bar svg {
+	margin: 0 1%;
+}
+
 .song-name {
 	overflow: hidden;
 	text-overflow: ellipsis;
