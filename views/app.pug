@@ -36,8 +36,8 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 				</svg>
 				span#player-bar-name.song-name
 
-		section.player-overlay.hidden-overlay
-			div#close-player x
+		section.overlay.player-overlay.hidden-overlay
+			div#close-player.close-overlay x
 			div.song-name.song-info
 			div.artist-name.song-info
 			div.album-name.song-info
@@ -66,8 +66,8 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 				span#clear-up-next Clear
 			ul.up-next
 
-		section.menu-overlay.hidden-overlay
-			div#close-menu x
+		section.overlay.menu-overlay.hidden-overlay
+			div#close-menu.close-overlay x
 			div.menu-links
 				if (menuLinks)
 					a(href=menuLinks.libraries) Libraries

@@ -84,7 +84,7 @@ function readSongs (albumPath, filename) {
 		let number = null;
 
 		if (!isNaN(leadingNumber)) {
-			let number = leadingNumber;
+			number = leadingNumber;
 			songName = songName.substr(songName.indexOf(' ') + 1);
 		}
 
