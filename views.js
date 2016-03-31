@@ -109,7 +109,6 @@ function listView (view, id, db, res, urlCallback) {
 			let title = data[0];
 			let list = data[1];
 			let library = data[2];
-			console.log(library);
 
 			if (title) {
 
