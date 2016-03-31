@@ -269,7 +269,7 @@ db.init(DB_SCHEMA).then(() => {
 			throw new Error(err);
 		}
 
-		app.listen(3000, () => {
+		app.listen(3000, '0.0.0.0', () => {
 			console.log('Running on 3000...');
 		});
 

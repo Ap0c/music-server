@@ -48,6 +48,7 @@ html, body {
 
 #navigation {
 	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
 }
 
 #navigation li {
@@ -138,6 +139,7 @@ svg {
 	margin: 1em 0 3em;
 	padding: 0.5em;
 	overflow-y: scroll;
+	-webkit-overflow-scrolling: touch;
 	border: 1px solid #000;
 }
 

@@ -85,7 +85,7 @@ var Db = (function Database () {
 		}).then(function () {
 			return db.delete().from(libraries).exec();
 		}).then(function () {
-			return fetch('http://localhost:3000/db');
+			return fetch('/db');
 		}).then(function (res) {
 			return res.json();
 		}).then(function (res) {
@@ -145,7 +145,7 @@ var Db = (function Database () {
 		var dataVersion = null;
 		var versionTable = null;
 
-		return fetch('http://localhost:3000/db_version').then(function (res) {
+		return fetch('/db_version').then(function (res) {
 			return res.json();
 		}).then(function (version) {
 			dataVersion = version.version;
