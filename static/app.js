@@ -194,6 +194,19 @@ var Db = (function Database () {
 
 	}
 
+	// Retrieves the id of the library for an item in given table.
+	function getLibrary (table, id) {
+
+		var query = db.select(table.library).from(table).where(table.id.eq(id));
+
+		return query.exec().then(function (result) {
+			return result[0];
+		}).catch(function (err) {
+			console.log(err);
+		});
+
+	}
+
 	// ----- Methods ----- //
 
 	// Retrieves all songs in a library.
@@ -206,13 +219,13 @@ var Db = (function Database () {
 	exports.songsSlice = function (library, id) {
 
 		var songs = db.getSchema().table('Songs');
+		var query = db.select(songs.name).from(songs).where(songs.id.eq(id));
 
-		return db.select(songs.name).from(songs).where(songs.id.eq(id)).exec()
-			.then(function (result) {
+		return query.exec().then(function (result) {
 
 			var name = result[0].name;
 
-			return db.select(songs.id).from(songs).where(lf.op.and(
+			return db.select(songs.id, songs.name).from(songs).where(lf.op.and(
 					songs.library.eq(library),
 					songs.name.gte(name)
 				)).orderBy(songs.name).exec();
@@ -291,13 +304,7 @@ var Db = (function Database () {
 	exports.getArtistLibrary = function (id) {
 
 		var artists = db.getSchema().table('Artists');
-
-		return db.select(artists.library).from(artists).where(artists.id.eq(id))
-			.exec().then(function (result) {
-				return result[0];
-		}).catch(function (err) {
-			console.log(err);
-		});
+		return getLibrary(artists, id);
 
 	};
 
@@ -305,13 +312,7 @@ var Db = (function Database () {
 	exports.getAlbumLibrary = function (id) {
 
 		var albums = db.getSchema().table('Albums');
-
-		return db.select(albums.library).from(albums).where(albums.id.eq(id))
-			.exec().then(function (result) {
-				return result[0];
-		}).catch(function (err) {
-			console.log(err);
-		});
+		return getLibrary(albums, id);
 
 	};
 
