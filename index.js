@@ -252,6 +252,22 @@ app.get('/db_version', (req, res) => {
 
 });
 
+app.route('/settings').get((req, res) => {
+
+	db.connect();
+
+	res.promise(db.query('SELECT name, path FROM libraries').then((libs) => {
+
+		res.render('app', {
+			title: 'Settings',
+			view: 'settings',
+			libraries: libs
+		});
+
+	}));
+
+});
+
 
 // ----- Run ----- //
 

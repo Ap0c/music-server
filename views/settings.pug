@@ -1,0 +1,12 @@
+div.settings-wrapper
+	h2 Add
+	p Enter the absolute path of a library on the server to add it to the database.
+	input(type="text")#library-path
+	button#add Add
+	h2 Scan
+	p Scan current libraries to add their content to the database.
+	button#scan Scan
+	h2 Current Libraries
+	each library in libraries
+		b= library.name
+		pre= library.path

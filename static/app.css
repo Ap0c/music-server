@@ -218,3 +218,33 @@ main {
 .hidden-overlay {
 	display: none;
 }
+
+
+/* ----- Settings ----- */
+
+.settings-wrapper {
+	padding: 1em;
+}
+
+.settings-wrapper pre {
+	white-space: pre-wrap;
+}
+
+.settings-wrapper button {
+	border: none;
+	padding: 0.5em 1.5em;
+	font-size: small;
+	background-color: coral;
+	color: white;
+}
+
+.settings-wrapper input {
+	width: 100%;
+	margin-bottom: 2em;
+	color: inherit;
+}
+
+.settings-wrapper p {
+	font-style: italic;
+	color: gray;
+}
