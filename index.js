@@ -301,8 +301,19 @@ db.init(DB_SCHEMA).then(() => {
 				throw new Error(err);
 			}
 
-			app.listen(3000, '0.0.0.0', () => {
-				console.log('Running on 3000...');
+			let settingsTemplate = pug.compileFileClient('views/settings.pug',
+				{name: 'settingsTemplate'});
+
+			fs.writeFile('static/settings-template.js', settingsTemplate, (err) => {
+
+				if (err) {
+					throw new Error(err);
+				}
+
+				app.listen(3000, '0.0.0.0', () => {
+					console.log('Running on 3000...');
+				});
+
 			});
 
 		});

@@ -405,21 +405,16 @@ var Views = (function Views () {
 	}
 
 	// Sets the location bar and page title, and displays the menu.
-	function setTitle (title, noMenu) {
+	function setTitle (title) {
 
 		document.title = `Music - ${title}`;
 		locationTitle.textContent = title;
-
-		if (noMenu) {
-			menuIcon.classList.add('display-off');
-		} else {
-			menuIcon.classList.remove('display-off');
-		}
 
 	}
 
 	// ----- Routes ----- //
 
+	// Sets up routing with page.js.
 	exports.setupRoutes = function () {
 
 		// Displays libraries.
@@ -429,7 +424,7 @@ var Views = (function Views () {
 				return `/library/${id}`;
 			});
 
-			setTitle('Music - Libraries', true);
+			setTitle('Music - Libraries');
 			view = { name: 'libraries', id: null };
 			renderMenu();
 
@@ -511,6 +506,22 @@ var Views = (function Views () {
 			Db.albumName(id).then(setTitle);
 
 			view = { name: 'album', id: id };
+			renderMenu();
+
+		});
+
+		page('/settings', function () {
+
+			Db.getLibraries().then(function (libraries) {
+
+				var settings = settingsTemplate({ libraries: libraries });
+				navigation.innerHTML = settings;
+
+			}).catch(function (err) {
+				console.log(err);
+			});
+
+			view = { name: 'settings', id: null };
 			renderMenu();
 
 		});
