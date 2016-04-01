@@ -350,6 +350,7 @@ var Views = (function Views () {
 	var upNext = playerOverlay.getElementsByClassName('up-next')[0];
 	var menuOverlay = document.getElementsByClassName('menu-overlay')[0];
 	var menuLinks = document.querySelectorAll('.menu-overlay a');
+	var scanMessage = document.getElementById('scan-message');
 
 	// ----- Functions ----- //
 
@@ -516,6 +517,7 @@ var Views = (function Views () {
 
 				var settings = settingsTemplate({ libraries: libraries });
 				navigation.innerHTML = settings;
+				Controls.settings();
 
 			}).catch(function (err) {
 				console.log(err);
@@ -671,6 +673,10 @@ var Views = (function Views () {
 	// Hides the menu overlay.
 	exports.hideMenu = function () {
 		menuOverlay.classList.add('hidden-overlay');
+	};
+
+	exports.scanMessage = function (message) {
+		scanMessage.textContent = message;
 	};
 
 	// ----- Constructor ----- //
@@ -943,13 +949,38 @@ var Controls = (function Controls () {
 
 	}
 
+	// Event handlers for the settings view.
+	function settingsClicks () {
+
+		var scanButton = document.getElementById('scan');
+
+		scanButton.addEventListener('click', function () {
+
+			Views.scanMessage('Scanning...');
+
+			fetch('/scan', { method: 'POST' }).then(function (res) {
+
+				if (res.status === 204) {
+					Views.scanMessage('Scan complete.');
+				} else {
+					Views.scanMessage('Scan failed.');
+				}
+
+			});
+
+		});
+
+	}
+
 	// ----- Constructor ----- //
 
 	navClicks();
 	playerClicks();
 	menuClicks();
 
-	return { menuLinks: menuLinks };
+	if (Views.view === 'settings') settingsClicks();
+
+	return { menuLinks: menuLinks, settings: settingsClicks };
 
 })();
 
