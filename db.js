@@ -167,6 +167,10 @@ module.exports = function Db (dbFile) {
 	// Runs multiple queries.
 	let dbMany = wrap((res, rej, sql, params) => {
 
+		if (params.length === 0) {
+			res();
+		}
+
 		let counter = 0;
 
 		for (let paramset of params) {

@@ -274,6 +274,17 @@ app.route('/settings').get((req, res) => {
 
 });
 
+// A route to activate music library scanning.
+app.post('/scan', (req, res) => {
+
+	scan(DB_FILE, MUSIC_DIR).then(() => {
+		res.sendStatus(204);
+	}).catch((err) => {
+		res.sendStatus(500);
+	});
+
+});
+
 
 // ----- Run ----- //
 

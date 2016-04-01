@@ -376,7 +376,7 @@ module.exports = function scan (dbFile, musicDir) {
 	let db = Db(dbFile);
 	db.connect();
 
-	db.query('SELECT * FROM libraries').then((libraries) => {
+	return db.query('SELECT * FROM libraries').then((libraries) => {
 
 		let syncLibraries = [];
 
@@ -399,6 +399,7 @@ module.exports = function scan (dbFile, musicDir) {
 
 		console.log(err);
 		db.close();
+		throw new Error(`Scan failed: ${err}.`);
 
 	});
 
