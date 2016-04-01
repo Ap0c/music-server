@@ -5,7 +5,8 @@ jshint.json
 *.db
 *.log
 static/music/*
-static/template.js
+static/list-template.js
+static/menu-template.js
 static/lovefield.min.js
 static/fetch.js
 static/page.js

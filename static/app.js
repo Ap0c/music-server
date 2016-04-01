@@ -366,10 +366,29 @@ var Views = (function Views (db) {
 	// Fills out the menu overlay with the menu template.
 	function buildMenu (library) {
 
-		menuLinks[0].setAttribute('href', '/');
-		menuLinks[1].setAttribute('href', `/library/${library}`);
-		menuLinks[2].setAttribute('href', `/library/${library}/albums`);
-		menuLinks[3].setAttribute('href', `/library/${library}/songs`);
+		var links = {
+			libraries: '/',
+			settings: '/settings'
+		};
+
+		if (library) {
+			links.libraryLinks = {};
+			links.libraryLinks.artists = `/library/${library}`;
+			links.libraryLinks.albums = `/library/${library}/albums`;
+			links.libraryLinks.songs = `/library/${library}/songs`;
+		}
+
+		var menu = menuTemplate({ menuLinks: links });
+		menuOverlay.innerHTML = menu;
+
+		var menuLinks = document.querySelectorAll('.menu-overlay a');
+		var closeMenu = document.getElementById('close-menu');
+
+		closeMenu.addEventListener('click', exports.hideMenu);
+
+		for (var k = menuLinks.length - 1; k >= 0; k--) {
+			menuLinks[k].addEventListener('click', exports.hideMenu);
+		}
 
 	}
 
@@ -378,10 +397,12 @@ var Views = (function Views (db) {
 
 		if (['artists', 'albums', 'songs'].indexOf(view.name) != -1) {
 			buildMenu(view.id);
-		} else if (view === 'artist') {
+		} else if (view.name === 'artist') {
 			db.getArtistLibrary(view.id).then(buildMenu);
-		} else if (view === 'album') {
+		} else if (view.name === 'album') {
 			db.getAlbumLibrary(view.id).then(buildMenu);
+		} else {
+			buildMenu();
 		}
 
 	}
@@ -411,6 +432,7 @@ var Views = (function Views (db) {
 
 		setTitle('Music - Libraries', true);
 		view = { name: 'libraries', id: null };
+		renderMenu();
 
 	});
 

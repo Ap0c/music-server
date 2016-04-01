@@ -187,8 +187,11 @@ main {
 	flex-grow: 1;
 }
 
-.menu-overlay a {
+.menu-link {
 	display: block;
+}
+
+.menu-overlay a {
 	text-decoration: none;
 	color: inherit;
 	font-size: x-large;

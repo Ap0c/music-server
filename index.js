@@ -128,6 +128,8 @@ app.get('/', (req, res) => {
 
 	res.promise(db.query('SELECT id, name FROM libraries').then((libraries) => {
 
+		let menuLinks = { libraries: '/', settings: '/settings' };
+
 		res.render('app', {
 
 			title: 'Music - Libraries',
@@ -135,7 +137,8 @@ app.get('/', (req, res) => {
 			view: 'libraries',
 			url: (id) => {
 				return `/library/${id}`;
-			}
+			},
+			menuLinks: menuLinks
 
 		});
 
@@ -258,10 +261,13 @@ app.route('/settings').get((req, res) => {
 
 	res.promise(db.query('SELECT name, path FROM libraries').then((libs) => {
 
+		let menuLinks = { libraries: '/', settings: '/settings' };
+
 		res.render('app', {
 			title: 'Settings',
 			view: 'settings',
-			libraries: libs
+			libraries: libs,
+			menuLinks: menuLinks
 		});
 
 	}));
@@ -277,16 +283,28 @@ db.init(DB_SCHEMA).then(() => {
 
 	db.close();
 
-	let template = pug.compileFileClient('views/list.pug', {name: 'listTemplate'});
+	let listTemplate = pug.compileFileClient('views/list.pug',
+		{name: 'listTemplate'});
 
-	fs.writeFile('static/template.js', template, (err) => {
+	fs.writeFile('static/list-template.js', listTemplate, (err) => {
 
 		if (err) {
 			throw new Error(err);
 		}
 
-		app.listen(3000, '0.0.0.0', () => {
-			console.log('Running on 3000...');
+		let menuTemplate = pug.compileFileClient('views/menu.pug',
+			{name: 'menuTemplate'});
+
+		fs.writeFile('static/menu-template.js', menuTemplate, (err) => {
+
+			if (err) {
+				throw new Error(err);
+			}
+
+			app.listen(3000, '0.0.0.0', () => {
+				console.log('Running on 3000...');
+			});
+
 		});
 
 	});

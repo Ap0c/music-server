@@ -110,10 +110,13 @@ function listView (view, id, db, res, urlCallback) {
 				let list = data[0];
 				let library = data[1];
 				let menuLinks = {
+					libraryLinks: {
+						artists: `/library/${library}`,
+						albums: `/library/${library}/albums`,
+						songs: `/library/${library}/songs`
+					},
 					libraries: '/',
-					artists: `/library/${library}`,
-					albums: `/library/${library}/albums`,
-					songs: `/library/${library}/songs`
+					settings: '/settings'
 				};
 
 				res.render('app', {

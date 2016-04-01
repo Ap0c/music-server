@@ -70,21 +70,11 @@ html(xmlns='http://www.w3.org/1999/xhtml', lang='en-GB', xml:lang='en-GB')
 			ul.up-next
 
 		section.overlay.menu-overlay.hidden-overlay
-			div#close-menu.close-overlay x
-			div.menu-links
-				if (menuLinks)
-					a(href=menuLinks.libraries) Libraries
-					a(href=menuLinks.artists) Artists
-					a(href=menuLinks.albums) Albums
-					a(href=menuLinks.songs) Songs
-				else
-					a Libraries
-					a Artists
-					a Albums
-					a Songs
+			include menu.pug
 
 		script(type='text/javascript', src='/static/fetch.js')
 		script(type='text/javascript', src='/static/lovefield.min.js')
 		script(type='text/javascript', src='/static/page.js')
-		script(type='text/javascript', src='/static/template.js')
+		script(type='text/javascript', src='/static/list-template.js')
+		script(type='text/javascript', src='/static/menu-template.js')
 		script(type='text/javascript', src='/static/app.js')
