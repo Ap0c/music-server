@@ -16,7 +16,6 @@ let views = require('./views');
 // ----- Setup ----- //
 
 // Sqlite database.
-const DB_SCHEMA = 'schema.sql';
 const DB_FILE = 'music.db';
 
 // Music location.
@@ -255,6 +254,7 @@ app.get('/db_version', (req, res) => {
 
 });
 
+// Displays the settings page.
 app.route('/settings').get((req, res) => {
 
 	db.connect();
@@ -277,49 +277,6 @@ app.route('/settings').get((req, res) => {
 
 // ----- Run ----- //
 
-db.connect();
-
-db.init(DB_SCHEMA).then(() => {
-
-	db.close();
-
-	let listTemplate = pug.compileFileClient('views/list.pug',
-		{name: 'listTemplate'});
-
-	fs.writeFile('static/list-template.js', listTemplate, (err) => {
-
-		if (err) {
-			throw new Error(err);
-		}
-
-		let menuTemplate = pug.compileFileClient('views/menu.pug',
-			{name: 'menuTemplate'});
-
-		fs.writeFile('static/menu-template.js', menuTemplate, (err) => {
-
-			if (err) {
-				throw new Error(err);
-			}
-
-			let settingsTemplate = pug.compileFileClient('views/settings.pug',
-				{name: 'settingsTemplate'});
-
-			fs.writeFile('static/settings-template.js', settingsTemplate, (err) => {
-
-				if (err) {
-					throw new Error(err);
-				}
-
-				app.listen(3000, '0.0.0.0', () => {
-					console.log('Running on 3000...');
-				});
-
-			});
-
-		});
-
-	});
-
-}).catch((err) => {
-	console.log(err);
+app.listen(3000, '0.0.0.0', () => {
+	console.log('Running on 3000...');
 });
