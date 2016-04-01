@@ -200,7 +200,7 @@ var Db = (function Database () {
 		var query = db.select(table.library).from(table).where(table.id.eq(id));
 
 		return query.exec().then(function (result) {
-			return result[0];
+			return result[0].library;
 		}).catch(function (err) {
 			console.log(err);
 		});
@@ -208,6 +208,14 @@ var Db = (function Database () {
 	}
 
 	// ----- Methods ----- //
+
+	// Connects to the database.
+	exports.connect = function () {
+
+		var schema = build();
+		return connect(schema).then(syncData);
+
+	};
 
 	// Retrieves all songs in a library.
 	exports.getSongs = function (library) {
@@ -318,15 +326,11 @@ var Db = (function Database () {
 
 	// ----- Constructor ----- //
 
-	var schema = build();
+	return exports;
 
-	return connect(schema).then(syncData).then(function () {
-		return exports;
-	});
+})();
 
-});
-
-var Views = (function Views (db) {
+var Views = (function Views () {
 
 	// ----- Properties ----- //
 
@@ -381,14 +385,7 @@ var Views = (function Views (db) {
 		var menu = menuTemplate({ menuLinks: links });
 		menuOverlay.innerHTML = menu;
 
-		var menuLinks = document.querySelectorAll('.menu-overlay a');
-		var closeMenu = document.getElementById('close-menu');
-
-		closeMenu.addEventListener('click', exports.hideMenu);
-
-		for (var k = menuLinks.length - 1; k >= 0; k--) {
-			menuLinks[k].addEventListener('click', exports.hideMenu);
-		}
+		Controls.menuLinks();
 
 	}
 
@@ -398,9 +395,9 @@ var Views = (function Views (db) {
 		if (['artists', 'albums', 'songs'].indexOf(view.name) != -1) {
 			buildMenu(view.id);
 		} else if (view.name === 'artist') {
-			db.getArtistLibrary(view.id).then(buildMenu);
+			Db.getArtistLibrary(view.id).then(buildMenu);
 		} else if (view.name === 'album') {
-			db.getAlbumLibrary(view.id).then(buildMenu);
+			Db.getAlbumLibrary(view.id).then(buildMenu);
 		} else {
 			buildMenu();
 		}
@@ -423,98 +420,104 @@ var Views = (function Views (db) {
 
 	// ----- Routes ----- //
 
-	// Displays libraries.
-	page('/', function () {
+	exports.setupRoutes = function () {
 
-		renderList(db.getLibraries, null, function (id) {
-			return `/library/${id}`;
+		// Displays libraries.
+		page('/', function () {
+
+			renderList(Db.getLibraries, null, function (id) {
+				return `/library/${id}`;
+			});
+
+			setTitle('Music - Libraries', true);
+			view = { name: 'libraries', id: null };
+			renderMenu();
+
 		});
 
-		setTitle('Music - Libraries', true);
-		view = { name: 'libraries', id: null };
-		renderMenu();
+		// Displays a library (list of artists).
+		page('/library/:id', function (ctx) {
 
-	});
+			var id = parseInt(ctx.params.id);
 
-	// Displays a library (list of artists).
-	page('/library/:id', function (ctx) {
+			renderList(Db.getArtists, id, function (id) {
+				return `/artist/${id}`;
+			});
 
-		var id = parseInt(ctx.params.id);
+			Db.libraryName(id).then(function (name) {
+				setTitle(`${name} - Artists`);
+			});
 
-		renderList(db.getArtists, id, function (id) {
-			return `/artist/${id}`;
+			view = { name: 'artists', id: id };
+			renderMenu();
+
 		});
 
-		db.libraryName(id).then(function (name) {
-			setTitle(`${name} - Artists`);
+		// Displays a library (list of songs).
+		page('/library/:id/songs', function (ctx) {
+
+			var id = parseInt(ctx.params.id);
+			renderList(Db.getSongs, id);
+
+			Db.libraryName(id).then(function (name) {
+				setTitle(`${name} - Songs`);
+			});
+
+			view = { name: 'songs', id: id };
+			renderMenu();
+
 		});
 
-		view = { name: 'artists', id: id };
-		renderMenu();
+		// Displays a library (list of albums).
+		page('/library/:id/albums', function (ctx) {
 
-	});
+			var id = parseInt(ctx.params.id);
 
-	// Displays a library (list of songs).
-	page('/library/:id/songs', function (ctx) {
+			renderList(Db.getAlbums, id, function (id) {
+				return `/album/${id}`;
+			});
 
-		var id = parseInt(ctx.params.id);
-		renderList(db.getSongs, id);
+			Db.libraryName(id).then(function (name) {
+				setTitle(`${name} - Albums`);
+			});
 
-		db.libraryName(id).then(function (name) {
-			setTitle(`${name} - Songs`);
+			view = { name: 'albums', id: id };
+			renderMenu();
+
 		});
 
-		view = { name: 'songs', id: id };
-		renderMenu();
+		// Displays an artist (list of albums).
+		page('/artist/:id', function (ctx) {
 
-	});
+			var id = parseInt(ctx.params.id);
 
-	// Displays a library (list of albums).
-	page('/library/:id/albums', function (ctx) {
+			renderList(Db.getArtist, id, function (id) {
+				return `/album/${id}`;
+			});
 
-		var id = parseInt(ctx.params.id);
+			Db.artistName(id).then(setTitle);
 
-		renderList(db.getAlbums, id, function (id) {
-			return `/album/${id}`;
+			view = { name: 'artist', id: id };
+			renderMenu();
+
 		});
 
-		db.libraryName(id).then(function (name) {
-			setTitle(`${name} - Albums`);
+		// Displays an album (list of songs).
+		page('/album/:id', function (ctx) {
+
+			var id = parseInt(ctx.params.id);
+			renderList(Db.getAlbum, id);
+
+			Db.albumName(id).then(setTitle);
+
+			view = { name: 'album', id: id };
+			renderMenu();
+
 		});
 
-		view = { name: 'albums', id: id };
-		renderMenu();
+		page({ dispatch: false });
 
-	});
-
-	// Displays an artist (list of albums).
-	page('/artist/:id', function (ctx) {
-
-		var id = parseInt(ctx.params.id);
-
-		renderList(db.getArtist, id, function (id) {
-			return `/album/${id}`;
-		});
-
-		db.artistName(id).then(setTitle);
-
-		view = { name: 'artist', id: id };
-		renderMenu();
-
-	});
-
-	// Displays an album (list of songs).
-	page('/album/:id', function (ctx) {
-
-		var id = parseInt(ctx.params.id);
-		renderList(db.getAlbum, id);
-
-		db.albumName(id).then(setTitle);
-
-		view = { name: 'album', id: id };
-		renderMenu();
-
-	});
+	};
 
 	// ----- Methods ----- //
 
@@ -563,7 +566,7 @@ var Views = (function Views (db) {
 	// Updates the currently playing song.
 	exports.playingSong = function (song) {
 
-		var getNames = [db.artistName(song.artist), db.albumName(song.album)];
+		var getNames = [Db.artistName(song.artist), Db.albumName(song.album)];
 
 		return Promise.all(getNames).then(function (names) {
 
@@ -610,7 +613,7 @@ var Views = (function Views (db) {
 	// Adds a single song by id, with option to add it to the back or the front.
 	exports.addNextSong = function (id, front) {
 
-		return db.getSong(id).then(function (song) {
+		return Db.getSong(id).then(function (song) {
 
 			if (front) {
 
@@ -661,13 +664,11 @@ var Views = (function Views (db) {
 
 	// ----- Constructor ----- //
 
-	page({ dispatch: false });
-
 	return exports;
 
-});
+})();
 
-var Player = (function Player (db, views) {
+var Player = (function Player () {
 
 	// ----- Properties ----- //
 
@@ -683,10 +684,10 @@ var Player = (function Player (db, views) {
 	// Starts playback of a new song.
 	function newSong (id) {
 
-		return db.getSong(id).then(function (song) {
+		return Db.getSong(id).then(function (song) {
 
 			nowPlaying = song;
-			views.playingSong(song);
+			Views.playingSong(song);
 			var wasPaused = audio.paused;
 			audio.src = musicPath + song.path;
 
@@ -706,7 +707,7 @@ var Player = (function Player (db, views) {
 	exports.play = function () {
 
 		audio.play();
-		views.pauseIcon();
+		Views.pauseIcon();
 
 	};
 
@@ -714,7 +715,7 @@ var Player = (function Player (db, views) {
 	exports.pause = function () {
 
 		audio.pause();
-		views.playIcon();
+		Views.playIcon();
 
 	};
 
@@ -739,7 +740,7 @@ var Player = (function Player (db, views) {
 			}
 
 			var id = upNext.shift();
-			views.popNextSong();
+			Views.popNextSong();
 			return newSong(id);
 
 		}
@@ -756,7 +757,7 @@ var Player = (function Player (db, views) {
 			if (nowPlaying) {
 
 				upNext.unshift(nowPlaying.id);
-				views.addNextSong(nowPlaying.id, true);
+				Views.addNextSong(nowPlaying.id, true);
 
 			}
 
@@ -785,9 +786,9 @@ var Player = (function Player (db, views) {
 
 	return exports;
 
-});
+})();
 
-var Controls = (function Controls (db, views, player) {
+var Controls = (function Controls () {
 
 	// ----- Functions ----- //
 
@@ -798,15 +799,15 @@ var Controls = (function Controls (db, views, player) {
 			return song.id;
 		});
 
-		views.addNextSongs(songs);
-		player.queue(ids);
+		Views.addNextSongs(songs);
+		Player.queue(ids);
 
 	}
 
 	// Queues songs in an album.
 	function queueAlbum (albumId, songId) {
 
-		return db.getAlbum(albumId).then(function (songs) {
+		return Db.getAlbum(albumId).then(function (songs) {
 
 			var firstSong = songs.findIndex(function (song) {
 				return song.id === songId;
@@ -821,14 +822,14 @@ var Controls = (function Controls (db, views, player) {
 	// Plays all songs in the current view.
 	function playSongs (id) {
 
-		var view = views.view;
-		player.clear();
-		views.clearSongs();
+		var view = Views.view;
+		Player.clear();
+		Views.clearSongs();
 
 		if (view.name === 'album') {
 			return queueAlbum(view.id, id);
 		} else if (view.name === 'songs') {
-			return db.songsSlice(view.id, id).then(queueSongs);
+			return Db.songsSlice(view.id, id).then(queueSongs);
 		}
 
 	}
@@ -836,20 +837,20 @@ var Controls = (function Controls (db, views, player) {
 	// Queues songs from plus click based on current view.
 	function plusQueue (id) {
 
-		var view = views.view;
+		var view = Views.view;
 
 		if (view.name === 'album' || view.name === 'songs') {
 
-			views.addNextSong(id).then(function () {
-				player.queue(id);
+			Views.addNextSong(id).then(function () {
+				Player.queue(id);
 			});
 
 		} else if (view.name === 'artist' || view.name === 'albums') {
-			db.getAlbum(id).then(queueSongs);
+			Db.getAlbum(id).then(queueSongs);
 		} else if (view.name === 'artists') {
-			db.songsArtist(id).then(queueSongs);
+			Db.songsArtist(id).then(queueSongs);
 		} else if (view.name === 'libraries') {
-			db.getSongs(id).then(queueSongs);
+			Db.getSongs(id).then(queueSongs);
 		}
 
 	}
@@ -865,7 +866,7 @@ var Controls = (function Controls (db, views, player) {
 			var id = parseInt(target.parentNode.dataset.id);
 
 			if (target.classList.contains('song')) {
-				playSongs(id).then(player.play);
+				playSongs(id).then(Player.play);
 			} else if (target.className === 'plus') {
 				plusQueue(id);
 			}
@@ -886,24 +887,38 @@ var Controls = (function Controls (db, views, player) {
 		var clearUpNext = document.getElementById('clear-up-next');
 
 		for (var i = 0, lenOne = pauseButtons.length; i < lenOne; i++) {
-			pauseButtons[i].addEventListener('click', player.pause);
+			pauseButtons[i].addEventListener('click', Player.pause);
 		}
 
 		for (var j = 0, lenTwo = playButtons.length; j < lenTwo; j++) {
-			playButtons[j].addEventListener('click', player.play);
+			playButtons[j].addEventListener('click', Player.play);
 		}
 
-		playerBarName.addEventListener('click', views.showPlayer);
-		closePlayer.addEventListener('click', views.hidePlayer);
-		ffButton.addEventListener('click', player.next);
-		rewButton.addEventListener('click', player.previous);
+		playerBarName.addEventListener('click', Views.showPlayer);
+		closePlayer.addEventListener('click', Views.hidePlayer);
+		ffButton.addEventListener('click', Player.next);
+		rewButton.addEventListener('click', Player.previous);
 
 		clearUpNext.addEventListener('click', function () {
 
-			player.clear();
-			views.clearSongs();
+			Player.clear();
+			Views.clearSongs();
 
 		});
+
+	}
+
+	// Event handlers for menu links.
+	function menuLinks () {
+
+		var links = document.querySelectorAll('.menu-overlay a');
+		var closeMenu = document.getElementById('close-menu');
+
+		closeMenu.addEventListener('click', Views.hideMenu);
+
+		for (var k = links.length - 1; k >= 0; k--) {
+			links[k].addEventListener('click', Views.hideMenu);
+		}
 
 	}
 
@@ -911,15 +926,9 @@ var Controls = (function Controls (db, views, player) {
 	function menuClicks () {
 
 		var menuIcon = document.getElementById('menu-icon');
-		var menuLinks = document.querySelectorAll('.menu-overlay a');
-		var closeMenu = document.getElementById('close-menu');
 
-		menuIcon.addEventListener('click', views.showMenu);
-		closeMenu.addEventListener('click', views.hideMenu);
-
-		for (var k = menuLinks.length - 1; k >= 0; k--) {
-			menuLinks[k].addEventListener('click', views.hideMenu);
-		}
+		menuIcon.addEventListener('click', Views.showMenu);
+		menuLinks();
 
 	}
 
@@ -929,7 +938,9 @@ var Controls = (function Controls (db, views, player) {
 	playerClicks();
 	menuClicks();
 
-});
+	return { menuLinks: menuLinks };
+
+})();
 
 
 // ----- Functions ----- //
@@ -937,13 +948,10 @@ var Controls = (function Controls (db, views, player) {
 // Sets up interface.
 function setup () {
 
-	Db().then(function (db) {
+	Db.connect().then(function (Db) {
 
-		var views = Views(db);
-		var player = Player(db, views);
-
-		var controls = Controls(db, views, player);
-		views.ready();
+		Views.setupRoutes();
+		Views.ready();
 
 	}).catch(function (err) {
 		console.log(err);
