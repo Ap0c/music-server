@@ -230,16 +230,23 @@ app.post('/add_library', (req, res) => {
 
 	let libraryPath = req.body.library_path;
 	let name = req.body.name;
+	console.log(req.body);
 
-	fs.stat(libraryPath, (err, stats) => {
+	if (!libraryPath || !name) {
+		res.status(400).send('Both fields must have content');
+	} else {
 
-		if (!err && stats.isDirectory()) {
-			res.promise(addLibrary(res, name, libraryPath));
-		} else {
-			res.status(400).send('No such path on the file system.');
-		}
+		fs.stat(libraryPath, (err, stats) => {
 
-	});
+			if (!err && stats.isDirectory()) {
+				res.promise(addLibrary(res, name, libraryPath));
+			} else {
+				res.status(400).send('No such path on the file system.');
+			}
+
+		});
+
+	}
 
 });
 

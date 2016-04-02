@@ -351,6 +351,7 @@ var Views = (function Views () {
 	var menuOverlay = document.getElementsByClassName('menu-overlay')[0];
 	var menuLinks = document.querySelectorAll('.menu-overlay a');
 	var scanMessage = document.getElementById('scan-message');
+	var addMessage = document.getElementById('add-message');
 
 	// ----- Functions ----- //
 
@@ -675,8 +676,14 @@ var Views = (function Views () {
 		menuOverlay.classList.add('hidden-overlay');
 	};
 
+	// Displays a message next to the scan button in settings.
 	exports.scanMessage = function (message) {
 		scanMessage.textContent = message;
+	};
+
+	// Displays a message next to the add button in settings.
+	exports.addMessage = function (message) {
+		addMessage.textContent = message;
 	};
 
 	// ----- Constructor ----- //
@@ -949,8 +956,8 @@ var Controls = (function Controls () {
 
 	}
 
-	// Event handlers for the settings view.
-	function settingsClicks () {
+	// Event handlers for the scan button in settings.
+	function scanClicks () {
 
 		var scanButton = document.getElementById('scan');
 
@@ -969,6 +976,49 @@ var Controls = (function Controls () {
 			});
 
 		});
+
+	}
+
+	// Event handlers for adding a library in settings.
+	function addLibraryClicks () {
+
+		var addButton = document.getElementById('add');
+		var libraryName = document.getElementById('name-input');
+		var libraryPath = document.getElementById('library-path-input');
+
+		addButton.addEventListener('click', function () {
+
+			var data = new FormData();
+			data.append('name', libraryName.value);
+			data.append('library_path', libraryPath.value);
+
+			var params = { method: 'POST', body: data };
+			var response = null;
+
+			fetch('/add_library', params).then(function (res) {
+
+				response = res;
+				return res.text();
+
+			}).then(function (message) {
+
+				if (response.status === 200) {
+					Views.addMessage('Library added.');
+				} else {
+					Views.addMessage(response.statusText);
+				}
+
+			});
+
+		});
+
+	}
+
+	// Event handlers for the settings view.
+	function settingsClicks () {
+
+		scanClicks();
+		addLibraryClicks();
 
 	}
 

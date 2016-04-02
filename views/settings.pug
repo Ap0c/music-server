@@ -1,8 +1,13 @@
 div.settings-wrapper
 	h2 Add
 	p Enter the absolute path of a library on the server to add it to the database.
-	input(type="text")#library-path
+	form
+		label(for="name-input") Library Name
+		input(type="text", name="name")#name-input
+		label(for="library-path-input") Library Path
+		input(type="text", name="library_path")#library-path-input
 	button#add Add
+	span#add-message
 	h2 Scan
 	p Scan current libraries to add their content to the database.
 	button#scan Scan
