@@ -28,7 +28,7 @@ let db = Db(DB_FILE);
 // Middleware.
 app.use('/static', express.static('static'));
 app.set('view engine', 'pug');
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(promiseResponse);
 app.use(errHandle);
 
@@ -110,7 +110,7 @@ function addLibrary (res, name, libraryPath) {
 		if (result.length === 0) {
 			return insertLibrary(res, name, libraryPath);
 		} else {
-			res.sendStatus(409);
+			res.status(409).send('Library already exists.');
 		}
 
 	});
@@ -230,7 +230,6 @@ app.post('/add_library', (req, res) => {
 
 	let libraryPath = req.body.library_path;
 	let name = req.body.name;
-	console.log(req.body);
 
 	if (!libraryPath || !name) {
 		res.status(400).send('Both fields must have content');

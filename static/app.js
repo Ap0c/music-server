@@ -969,11 +969,36 @@ var Controls = (function Controls () {
 
 				if (res.status === 204) {
 					Views.scanMessage('Scan complete.');
+					location.reload();
 				} else {
 					Views.scanMessage('Scan failed.');
 				}
 
 			});
+
+		});
+
+	}
+
+	// Posts the library info to the server, and handles response.
+	function addLibrary (info) {
+
+		var response = null;
+		var params = { method: 'POST', body: info, headers:
+				{ 'Content-Type': 'application/json' } };
+
+		fetch('/add_library', params).then(function (res) {
+
+			response = res;
+			return res.text();
+
+		}).then(function (message) {
+
+			if (response.status === 201) {
+				Views.addMessage('Library added.');
+			} else {
+				Views.addMessage(message);
+			}
 
 		});
 
@@ -988,27 +1013,12 @@ var Controls = (function Controls () {
 
 		addButton.addEventListener('click', function () {
 
-			var data = new FormData();
-			data.append('name', libraryName.value);
-			data.append('library_path', libraryPath.value);
-
-			var params = { method: 'POST', body: data };
-			var response = null;
-
-			fetch('/add_library', params).then(function (res) {
-
-				response = res;
-				return res.text();
-
-			}).then(function (message) {
-
-				if (response.status === 200) {
-					Views.addMessage('Library added.');
-				} else {
-					Views.addMessage(response.statusText);
-				}
-
+			var data = JSON.stringify({
+				name: libraryName.value,
+				library_path: libraryPath.value
 			});
+
+			addLibrary(data);
 
 		});
 
