@@ -48,6 +48,7 @@ var Db = (function Database () {
 		schemaBuilder.createTable('Libraries')
 			.addColumn('id', lf.Type.INTEGER)
 			.addColumn('name', lf.Type.STRING)
+			.addColumn('path', lf.Type.STRING)
 			.addPrimaryKey(['id']);
 
 		schemaBuilder.createTable('DataVersion')
@@ -288,7 +289,7 @@ var Db = (function Database () {
 
 	};
 
-	// Retrieves all songs for an album.
+	// Retrieves all libraries by name.
 	exports.getLibraries = function () {
 		return listQuery('Libraries', null, 'name');
 	};
@@ -321,6 +322,14 @@ var Db = (function Database () {
 
 		var albums = db.getSchema().table('Albums');
 		return getLibrary(albums, id);
+
+	};
+
+	// Retrieves all libraries and their paths.
+	exports.libraryPaths = function () {
+
+		var libraries = db.getSchema().table('Libraries');
+		return db.select(libraries.name, libraries.path).from(libraries).exec();
 
 	};
 
@@ -514,7 +523,7 @@ var Views = (function Views () {
 
 		page('/settings', function () {
 
-			Db.getLibraries().then(function (libraries) {
+			Db.libraryPaths().then(function (libraries) {
 
 				var settings = settingsTemplate({ libraries: libraries });
 				navigation.innerHTML = settings;
