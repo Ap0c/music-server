@@ -359,8 +359,6 @@ var Views = (function Views () {
 	var upNext = playerOverlay.getElementsByClassName('up-next')[0];
 	var menuOverlay = document.getElementsByClassName('menu-overlay')[0];
 	var menuLinks = document.querySelectorAll('.menu-overlay a');
-	var scanMessage = document.getElementById('scan-message');
-	var addMessage = document.getElementById('add-message');
 
 	// ----- Functions ----- //
 
@@ -687,12 +685,18 @@ var Views = (function Views () {
 
 	// Displays a message next to the scan button in settings.
 	exports.scanMessage = function (message) {
+
+		var scanMessage = document.getElementById('scan-message');
 		scanMessage.textContent = message;
+
 	};
 
 	// Displays a message next to the add button in settings.
 	exports.addMessage = function (message) {
+
+		var addMessage = document.getElementById('add-message');
 		addMessage.textContent = message;
+
 	};
 
 	// ----- Constructor ----- //
