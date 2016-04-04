@@ -12,7 +12,14 @@ curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 
-# ---- Configure Systemd ----- #
+# ----- Install Dependencies ----- #
+
+# Add node repo and install.
+echo '-----> Installing dependencies...'
+npm install
+
+
+# ----- Configure Systemd ----- #
 
 echo '-----> Configuring Systemd...'
 
