@@ -1,0 +1,12 @@
+[Unit]
+Description=Music Server
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/music-server
+ExecStart=npm start
+
+[Install]
+WantedBy=multi-user.target
