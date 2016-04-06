@@ -1,15 +1,5 @@
 #!/usr/bin/env bash
-
-# ----- Aptitude Installs ----- #
-
-# Update package list.
-echo '-----> Updating package list...'
-sudo apt-get update
-
-# Add node repo and install.
-echo '-----> Installing Node.js...'
-curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
-sudo apt-get install -y nodejs
+. ~/.nvm/nvm.sh
 
 
 # ----- Install Dependencies ----- #
